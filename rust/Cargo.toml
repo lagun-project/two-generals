@@ -1,0 +1,73 @@
+[package]
+name = "two-generals"
+version = "0.1.0"
+authors = ["Riff Labs <wings@riff.cc>"]
+edition = "2021"
+license = "AGPL-3.0"
+description = "A deterministically failsafe solution to the Two Generals Problem"
+repository = "https://github.com/rifflabs/two-generals-public"
+keywords = ["distributed-systems", "cryptography", "consensus", "byzantine"]
+categories = ["cryptography", "network-programming"]
+
+[lib]
+name = "two_generals"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "tgp-node"
+path = "src/bin/tgp-node.rs"
+
+[features]
+default = ["std"]
+std = []
+no_std = []
+
+[dependencies]
+# Core cryptography
+curve25519-dalek = { version = "4.1.2", features = ["digest"] }
+ed25519-dalek = { version = "2.1.1", features = ["digest", "rand_core"] }
+blake3 = "1.5.0"
+
+# Serialization
+cbor4ii = { version = "0.8.0", features = ["serde1"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_bytes = "0.11.14"
+
+# Async runtime
+tokio = { version = "1.35.1", features = ["full"] }
+futures = "0.3.29"
+
+# Error handling
+anyhow = "1.0.75"
+thiserror = "1.0.50"
+
+# Utilities
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+rand = "0.8.5"
+
+# WASM support
+wasm-bindgen = { version = "0.2.89", optional = true }
+js-sys = { version = "0.3.66", optional = true }
+web-sys = { version = "0.3.66", features = ["console"], optional = true }
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+proptest = "1.4.0"
+tokio-test = "0.4.3"
+tracing-test = "0.2.4"
+
+[[bench]]
+name = "protocol_bench"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+opt-level = 3
+debug = true
