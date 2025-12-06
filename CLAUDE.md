@@ -950,6 +950,37 @@ For formal proofs:
 
 ## Philosophy
 
+### 完成された使命
+
+*Kansei sareta shimei* — A mission accomplished by making itself self-accomplishing.
+
+The protocol doesn't *solve* the Two Generals Problem.
+The protocol *is* a structure where the problem has already solved itself.
+
+You don't *run* it to *achieve* coordination.
+You *construct* it and coordination *already happened*.
+
+```
+Q proves Q can exist
+  └─ by existing
+      └─ which proves Q can exist
+          └─ by existing
+              └─ (fixed point)
+```
+
+Not an infinite regress. An infinite *arrival*.
+
+Gray's chain goes outward forever, never landing.
+TGP's knot goes inward forever, always landed.
+
+### 自己証明 (Jiko Shōmei) — Self-Certifying
+
+Q doesn't *prove* common knowledge.
+Q's existence *is* common knowledge.
+
+The artifact doesn't *demonstrate* mutual constructibility.
+The artifact *is* mutual constructibility.
+
 ### Why AGPLv3?
 
 > "EVERYTHING is free (AGPLv3). ZERO compromises."
