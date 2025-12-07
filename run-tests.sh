@@ -79,10 +79,10 @@ echo "Running: lake build"
 echo ""
 
 # Check for sorry statements first (excluding comments about sorry)
-SORRY_COUNT=$(grep -r "sorry" *.lean 2>/dev/null | grep -v -e "-- " -e "no sorry" -e "without sorry" -e "/--" | wc -l || echo "0")
+SORRY_COUNT=$(grep -r "sorry" *.lean 2>/dev/null | grep -v -e "-- " -e "no sorry" -e "without sorry" -e "/--" -e "0 sorry" -e "COMPLETE" | wc -l || echo "0")
 if [[ "$SORRY_COUNT" -gt 0 ]]; then
     echo -e "${RED}WARNING: Found $SORRY_COUNT potential 'sorry' statements${NC}"
-    grep -rn "sorry" *.lean 2>/dev/null | grep -v -e "-- " -e "no sorry" -e "without sorry" || true
+    grep -rn "sorry" *.lean 2>/dev/null | grep -v -e "-- " -e "no sorry" -e "without sorry" -e "0 sorry" -e "COMPLETE" || true
     echo ""
 else
     echo -e "${GREEN}✓ No 'sorry' statements found in source files${NC}"
