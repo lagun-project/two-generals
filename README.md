@@ -268,7 +268,8 @@ No proprietary versions, no enterprise exclusives. This protocol solves a fundam
 
 ## Contact
 
-**Riff Labs Limited, London**
+**Riff Labs**: `team@riff.cc`
+
 Repository: https://github.com/riffcc/two-generals
 
 ---
