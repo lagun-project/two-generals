@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive visualization of the Two Generals Protocol (TGP) - a deterministically failsafe solution to the Coordinated Attack Problem">
     <title>Two Generals Protocol - Interactive Visualizer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Skip Navigation Link for Keyboard Users -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="container">
-        <header>
+        <header role="banner">
             <h1>Two Generals Protocol</h1>
             <p class="subtitle">A Deterministically Failsafe Solution to the Coordinated Attack Problem</p>
             <div class="hero-stats">
@@ -32,150 +36,373 @@
             <p class="hero-quote">"You would need to run this protocol once per picosecond, on every atom in a trillion universes, from the Big Bang until the heat death of the cosmos, and you still would not expect to see a single failure."</p>
         </header>
 
-        <main>
-            <section class="controls">
+        <main id="main-content" role="main">
+            <!-- Tab Navigation -->
+            <nav class="tab-container" role="tablist" aria-label="Protocol sections">
+                <button class="tab-button active" role="tab" id="tab-problem" aria-controls="pane-problem" aria-selected="true" tabindex="0">
+                    <span class="tab-icon">1</span>
+                    <span class="tab-label">The Problem & Solution</span>
+                </button>
+                <button class="tab-button" role="tab" id="tab-comparison" aria-controls="pane-comparison" aria-selected="false" tabindex="-1">
+                    <span class="tab-icon">2</span>
+                    <span class="tab-label">Live Protocol Comparison</span>
+                </button>
+                <button class="tab-button" role="tab" id="tab-visualizer" aria-controls="pane-visualizer" aria-selected="false" tabindex="-1">
+                    <span class="tab-icon">3</span>
+                    <span class="tab-label">Interactive Visualizer</span>
+                </button>
+            </nav>
+
+            <!-- Tab Pane 1: The Problem & Solution -->
+            <div class="tab-pane active" role="tabpanel" id="pane-problem" aria-labelledby="tab-problem" aria-hidden="false">
+                <!-- Section 1: The Battlefield Scene -->
+                <section class="battlefield-scene" aria-labelledby="battlefield-heading">
+                    <h2 id="battlefield-heading">The Coordination Dilemma</h2>
+                    <p class="section-description">Two armies must coordinate an attack. If only one attacks, they will be destroyed.</p>
+                    <div class="battlefield-container">
+                        <div id="battlefield-scene" role="img" aria-label="Animated battlefield showing two armies attempting to coordinate through enemy territory"></div>
+                    </div>
+                    <div class="demo-controls">
+                        <button data-section-action="start-battlefield" class="primary">Start Demo</button>
+                        <button data-section-action="stop-battlefield">Stop</button>
+                        <button data-section-action="reset-battlefield">Reset</button>
+                    </div>
+                </section>
+
+                <!-- Section 2: The Infinite Regress Problem -->
+                <section class="infinite-regress" aria-labelledby="regress-heading">
+                    <h2 id="regress-heading">Why Traditional ACKs Fail</h2>
+                    <p class="section-description">Every acknowledgment creates the need for another. The chain never ends.</p>
+                    <div class="regress-container">
+                        <div id="infinite-regress" role="img" aria-label="Visualization showing infinite chain of acknowledgments"></div>
+                    </div>
+                    <div class="demo-controls">
+                        <button data-section-action="run-regress" class="primary">Run Demo</button>
+                        <button data-section-action="step-regress">Step Forward</button>
+                        <button data-section-action="reset-regress">Reset</button>
+                    </div>
+                    <div class="regress-explanation">
+                        <p><strong>The Problem:</strong> Every message could be "the last one" that gets lost, leaving one party uncertain forever.</p>
+                    </div>
+                </section>
+
+                <!-- Section 3: Proof Merging Animation -->
+                <section class="proof-merging" aria-labelledby="proof-merging-heading">
+                    <h2 id="proof-merging-heading">How Proofs Embed and Escalate</h2>
+                    <p class="section-description">Watch how each proof level embeds the previous, creating self-certifying artifacts.</p>
+                    <div class="proof-merging-container">
+                        <div id="proof-merging" role="img" aria-label="Animated visualization showing proof embedding from Commitment through Quaternary"></div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Phase Walkthrough -->
+                <section class="phase-walkthrough" aria-labelledby="phase-walkthrough-heading">
+                    <h2 id="phase-walkthrough-heading">Protocol Phases: Step by Step</h2>
+                    <p class="section-description">Walk through each phase of the TGP protocol and understand the epistemic depth at each level.</p>
+                    <div class="phase-walkthrough-container">
+                        <div id="phase-walkthrough" role="application" aria-label="Interactive phase walkthrough with navigation controls"></div>
+                    </div>
+                </section>
+
+                <!-- Section 5: Bilateral Construction Graph -->
+                <section class="bilateral-graph-section" aria-labelledby="bilateral-graph-heading">
+                    <h2 id="bilateral-graph-heading">The Bilateral Construction Property</h2>
+                    <p class="section-description">Each half of Q cryptographically proves the other half is constructible. Neither can exist alone.</p>
+                    <div class="bilateral-graph-container">
+                        <div id="bilateral-construction-graph" role="img" aria-label="Interactive graph showing bilateral construction property between Q_A and Q_B"></div>
+                    </div>
+                </section>
+
+                <!-- Section 6: No Last Message Comparison -->
+                <section class="no-last-message-section" aria-labelledby="no-last-message-heading">
+                    <h2 id="no-last-message-heading">Why There's No "Last Message" Problem</h2>
+                    <p class="section-description">Traditional protocols fear a final message loss. TGP's continuous flooding eliminates this vulnerability.</p>
+                    <div class="no-last-message-container">
+                        <div id="no-last-message" role="img" aria-label="Side-by-side comparison of traditional chain vs TGP flooding"></div>
+                    </div>
+                </section>
+
+                <!-- Section 7: Knot Metaphor Visualization -->
+                <section class="knot-metaphor-section" aria-labelledby="knot-metaphor-heading">
+                    <h2 id="knot-metaphor-heading">The Knot, Not the Chain</h2>
+                    <p class="section-description">Traditional ACKs form a chain where any link can break. TGP forms a knot that can only be tied together.</p>
+                    <div class="knot-metaphor-container">
+                        <div id="knot-metaphor" role="img" aria-label="Visual comparison of chain vs knot topology"></div>
+                    </div>
+                </section>
+
+                <!-- Section 8: Impact Visualization -->
+                <section class="impact-visualization-section" aria-labelledby="impact-heading">
+                    <h2 id="impact-heading">The Impact</h2>
+                    <p class="section-description">A 47-year impossibility result solved. Byzantine fault tolerance in two floods.</p>
+                    <div class="impact-visualization-container">
+                        <div id="impact-visualization" role="img" aria-label="Cards showing safety, liveness, performance, and simplicity guarantees"></div>
+                    </div>
+                </section>
+
+                <section class="solution-statement">
+                    <h2>The TGP Solution</h2>
+                    <p>Instead of infinite acknowledgments, TGP constructs <strong>self-certifying bilateral artifacts</strong> where existence itself proves mutual constructibility.</p>
+                </section>
+            </div>
+
+            <!-- Tab Pane 2: Live Protocol Comparison -->
+            <div class="tab-pane" role="tabpanel" id="pane-comparison" aria-labelledby="tab-comparison" aria-hidden="true">
+                <section class="performance-visualizer" aria-labelledby="perf-heading">
+                    <div class="performance-header">
+                        <h2 id="perf-heading">Protocol Performance Comparison</h2>
+                        <p>Compare TGP against TCP, QUIC, and UDP under various packet loss conditions</p>
+                    </div>
+
+                    <!-- Test Controls -->
+                    <div class="perf-controls" role="group" aria-label="Performance test controls">
+                        <div class="perf-control-group">
+                            <label for="perf-loss-rate">Packet Loss Rate</label>
+                            <select id="perf-loss-rate" aria-describedby="loss-description">
+                                <option value="0.1">10%</option>
+                                <option value="0.3">30%</option>
+                                <option value="0.5" selected>50%</option>
+                                <option value="0.7">70%</option>
+                                <option value="0.9">90%</option>
+                                <option value="0.95">95%</option>
+                                <option value="0.99">99%</option>
+                            </select>
+                        </div>
+                        <div class="perf-control-group">
+                            <label for="perf-iterations">Test Iterations</label>
+                            <input type="number" id="perf-iterations" value="100" min="10" max="1000" step="10">
+                        </div>
+                        <div class="perf-control-group">
+                            <button id="run-perf-test" class="primary">Run Comparison</button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="perf-progress" id="perf-progress" style="display: none;">
+                        <div class="perf-progress-bar">
+                            <div class="perf-progress-fill" id="perf-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="perf-progress-text">
+                            <span id="perf-progress-status">Running tests...</span>
+                            <span id="perf-progress-percent">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Protocol Cards -->
+                    <div class="protocol-cards" role="list" aria-label="Protocol comparison cards">
+                        <div class="protocol-card tgp" role="listitem">
+                            <h4>TGP</h4>
+                            <div class="metric" id="tgp-success">--</div>
+                            <div class="metric-label">Success Rate</div>
+                            <p class="description">Bilateral construction with proof escalation</p>
+                        </div>
+                        <div class="protocol-card tcp" role="listitem">
+                            <h4>TCP</h4>
+                            <div class="metric" id="tcp-success">--</div>
+                            <div class="metric-label">Success Rate</div>
+                            <p class="description">Traditional ACK-based, vulnerable to last-message</p>
+                        </div>
+                        <div class="protocol-card quic" role="listitem">
+                            <h4>QUIC</h4>
+                            <div class="metric" id="quic-success">--</div>
+                            <div class="metric-label">Success Rate</div>
+                            <p class="description">Modern UDP-based with reliability layer</p>
+                        </div>
+                        <div class="protocol-card udp" role="listitem">
+                            <h4>UDP</h4>
+                            <div class="metric" id="udp-success">--</div>
+                            <div class="metric-label">Success Rate</div>
+                            <p class="description">Fire-and-forget, no coordination</p>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="perf-charts-grid" id="perf-charts">
+                        <div class="perf-chart-wrapper">
+                            <h3><span class="chart-icon">1</span> Success Rate by Loss</h3>
+                            <div class="perf-chart" id="chart-success"></div>
+                        </div>
+                        <div class="perf-chart-wrapper">
+                            <h3><span class="chart-icon">2</span> Symmetric Outcomes</h3>
+                            <div class="perf-chart" id="chart-symmetry"></div>
+                        </div>
+                        <div class="perf-chart-wrapper">
+                            <h3><span class="chart-icon">3</span> Messages Required</h3>
+                            <div class="perf-chart" id="chart-messages"></div>
+                        </div>
+                        <div class="perf-chart-wrapper">
+                            <h3><span class="chart-icon">4</span> Time to Completion</h3>
+                            <div class="perf-chart" id="chart-time"></div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Legend -->
+                    <div class="perf-chart-legend">
+                        <span class="perf-legend-item"><span class="perf-legend-color tgp"></span> TGP</span>
+                        <span class="perf-legend-item"><span class="perf-legend-color tcp"></span> TCP</span>
+                        <span class="perf-legend-item"><span class="perf-legend-color quic"></span> QUIC</span>
+                        <span class="perf-legend-item"><span class="perf-legend-color udp"></span> UDP</span>
+                    </div>
+
+                    <!-- Summary Section -->
+                    <div class="perf-summary" id="perf-summary" style="display: none;">
+                        <h3>Key Findings</h3>
+                        <div class="perf-findings" id="perf-findings"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Tab Pane 3: Interactive Visualizer -->
+            <div class="tab-pane" role="tabpanel" id="pane-visualizer" aria-labelledby="tab-visualizer" aria-hidden="true">
+            <section class="controls" aria-label="Simulation Controls">
                 <div class="control-group">
-                    <label for="loss-rate">Packet Loss Rate: <span id="loss-value">50%</span></label>
-                    <input type="range" id="loss-rate" min="0" max="100" value="50">
-                    <div class="loss-presets">
-                        <button class="loss-preset" data-loss="50">50%</button>
-                        <button class="loss-preset" data-loss="90">90%</button>
-                        <button class="loss-preset" data-loss="99">99%</button>
-                        <button class="loss-preset" data-loss="99.9">99.9%</button>
-                        <button class="loss-preset" data-loss="99.99">99.99%</button>
-                        <button class="loss-preset" data-loss="99.9999">99.9999%</button>
+                    <label for="loss-rate">Packet Loss Rate: <span id="loss-value" aria-live="polite">50%</span></label>
+                    <input type="range" id="loss-rate" min="0" max="100" value="50" aria-describedby="loss-presets-hint">
+                    <div class="loss-presets" id="loss-presets-hint" role="group" aria-label="Quick loss rate presets">
+                        <button class="loss-preset" data-loss="50" aria-label="Set packet loss to 50%">50%</button>
+                        <button class="loss-preset" data-loss="90" aria-label="Set packet loss to 90%">90%</button>
+                        <button class="loss-preset" data-loss="99" aria-label="Set packet loss to 99%">99%</button>
+                        <button class="loss-preset" data-loss="99.9" aria-label="Set packet loss to 99.9%">99.9%</button>
+                        <button class="loss-preset" data-loss="99.99" aria-label="Set packet loss to 99.99%">99.99%</button>
+                        <button class="loss-preset" data-loss="99.9999" aria-label="Set packet loss to 99.9999%">99.9999%</button>
                     </div>
                 </div>
                 <div class="control-group">
-                    <label for="speed">Simulation Speed: <span id="speed-value">1x</span></label>
-                    <input type="range" id="speed" min="0" max="4" step="1" value="0">
-                    <div class="speed-legend">1x → 5x → 50x → 500x → 5000x</div>
+                    <label for="speed">Simulation Speed: <span id="speed-value" aria-live="polite">1x</span></label>
+                    <input type="range" id="speed" min="0" max="4" step="1" value="0" aria-describedby="speed-legend">
+                    <div class="speed-legend" id="speed-legend">1x → 5x → 50x → 500x → 5000x</div>
                 </div>
-                <div class="button-group">
-                    <button id="start-btn" class="primary">Start Protocol</button>
-                    <button id="reset-btn">Reset</button>
+                <div class="button-group" role="group" aria-label="Simulation actions">
+                    <button id="start-btn" class="primary" aria-label="Start the protocol simulation">Start Protocol</button>
+                    <button id="reset-btn" aria-label="Reset the simulation to initial state">Reset</button>
                 </div>
             </section>
 
-            <section class="visualization">
+            <section class="visualization" aria-label="Protocol Visualization">
                 <div class="party-container">
-                    <div class="party" id="alice">
-                        <h3>Alice (General A)</h3>
-                        <div class="state-indicator">
+                    <div class="party" id="alice" role="region" aria-labelledby="alice-heading">
+                        <h3 id="alice-heading">Alice (General A)</h3>
+                        <div class="state-indicator" role="status" aria-live="polite">
                             <span class="phase">Phase: <strong id="alice-phase">INIT</strong></span>
                             <span class="status" id="alice-status">Waiting</span>
                         </div>
-                        <div class="proof-stack" id="alice-proofs">
+                        <div class="proof-stack" id="alice-proofs" role="log" aria-label="Alice's proof artifacts" aria-live="polite">
                             <!-- Proof artifacts will be rendered here -->
                         </div>
                     </div>
 
-                    <div class="channel" id="network">
-                        <svg id="packet-svg" viewBox="0 0 400 200"></svg>
-                        <div class="channel-stats">
+                    <div class="channel" id="network" role="img" aria-label="Network channel showing packet transmission between Alice and Bob">
+                        <svg id="packet-svg" viewBox="0 0 400 200" role="graphics-document" aria-label="Animated visualization of packets being transmitted">
+                            <title>Packet transmission animation</title>
+                            <desc>Packets move between Alice and Bob, some getting lost (shown as fading) due to unreliable network conditions</desc>
+                        </svg>
+                        <div class="channel-stats" role="status" aria-live="polite" aria-label="Network statistics">
                             <span>Sent: <strong id="packets-sent">0</strong></span>
                             <span>Lost: <strong id="packets-lost">0</strong></span>
                             <span>Delivered: <strong id="packets-delivered">0</strong></span>
                         </div>
                     </div>
 
-                    <div class="party" id="bob">
-                        <h3>Bob (General B)</h3>
-                        <div class="state-indicator">
+                    <div class="party" id="bob" role="region" aria-labelledby="bob-heading">
+                        <h3 id="bob-heading">Bob (General B)</h3>
+                        <div class="state-indicator" role="status" aria-live="polite">
                             <span class="phase">Phase: <strong id="bob-phase">INIT</strong></span>
                             <span class="status" id="bob-status">Waiting</span>
                         </div>
-                        <div class="proof-stack" id="bob-proofs">
+                        <div class="proof-stack" id="bob-proofs" role="log" aria-label="Bob's proof artifacts" aria-live="polite">
                             <!-- Proof artifacts will be rendered here -->
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="proof-escalation">
-                <h2>Proof Escalation Progress</h2>
-                <div class="escalation-diagram">
-                    <div class="level" id="level-c">
-                        <span class="level-name">Commitment (C)</span>
-                        <div class="level-bars">
-                            <div class="bar alice-bar" id="alice-c"></div>
-                            <div class="bar bob-bar" id="bob-c"></div>
+            <section class="proof-escalation" aria-labelledby="escalation-heading">
+                <h2 id="escalation-heading">Proof Escalation Progress</h2>
+                <div class="escalation-diagram" role="group" aria-label="Progress through four proof levels">
+                    <div class="level" id="level-c" role="group" aria-label="Commitment level">
+                        <span class="level-name" id="level-c-label">Commitment (C)</span>
+                        <div class="level-bars" role="group" aria-labelledby="level-c-label">
+                            <div class="bar alice-bar" id="alice-c" role="progressbar" aria-label="Alice's commitment progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="bar bob-bar" id="bob-c" role="progressbar" aria-label="Bob's commitment progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="level" id="level-d">
-                        <span class="level-name">Double Proof (D)</span>
-                        <div class="level-bars">
-                            <div class="bar alice-bar" id="alice-d"></div>
-                            <div class="bar bob-bar" id="bob-d"></div>
+                    <div class="level" id="level-d" role="group" aria-label="Double proof level">
+                        <span class="level-name" id="level-d-label">Double Proof (D)</span>
+                        <div class="level-bars" role="group" aria-labelledby="level-d-label">
+                            <div class="bar alice-bar" id="alice-d" role="progressbar" aria-label="Alice's double proof progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="bar bob-bar" id="bob-d" role="progressbar" aria-label="Bob's double proof progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="level" id="level-t">
-                        <span class="level-name">Triple Proof (T)</span>
-                        <div class="level-bars">
-                            <div class="bar alice-bar" id="alice-t"></div>
-                            <div class="bar bob-bar" id="bob-t"></div>
+                    <div class="level" id="level-t" role="group" aria-label="Triple proof level">
+                        <span class="level-name" id="level-t-label">Triple Proof (T)</span>
+                        <div class="level-bars" role="group" aria-labelledby="level-t-label">
+                            <div class="bar alice-bar" id="alice-t" role="progressbar" aria-label="Alice's triple proof progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="bar bob-bar" id="bob-t" role="progressbar" aria-label="Bob's triple proof progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="level" id="level-q">
-                        <span class="level-name">Quad Proof (Q)</span>
-                        <div class="level-bars">
-                            <div class="bar alice-bar" id="alice-q"></div>
-                            <div class="bar bob-bar" id="bob-q"></div>
+                    <div class="level" id="level-q" role="group" aria-label="Quaternary proof level - epistemic fixpoint">
+                        <span class="level-name" id="level-q-label">Quad Proof (Q)</span>
+                        <div class="level-bars" role="group" aria-labelledby="level-q-label">
+                            <div class="bar alice-bar" id="alice-q" role="progressbar" aria-label="Alice's quad proof progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="bar bob-bar" id="bob-q" role="progressbar" aria-label="Bob's quad proof progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="outcome">
-                <h2>Protocol Outcome</h2>
-                <div class="outcome-display" id="outcome">
+            <section class="outcome" aria-labelledby="outcome-heading">
+                <h2 id="outcome-heading">Protocol Outcome</h2>
+                <div class="outcome-display" id="outcome" role="status" aria-live="polite" aria-atomic="true">
                     <span class="pending">Awaiting protocol completion...</span>
                 </div>
-                <div class="stats">
+                <div class="stats" role="group" aria-label="Simulation statistics">
                     <div class="stat">
-                        <span class="stat-label">Time Elapsed</span>
-                        <span class="stat-value" id="elapsed-time">0.00s</span>
+                        <span class="stat-label" id="elapsed-label">Time Elapsed</span>
+                        <span class="stat-value" id="elapsed-time" aria-labelledby="elapsed-label">0.00s</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-label">Total Packets</span>
-                        <span class="stat-value" id="total-packets">0</span>
+                        <span class="stat-label" id="packets-label">Total Packets</span>
+                        <span class="stat-value" id="total-packets" aria-labelledby="packets-label">0</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-label">Actual Loss Rate</span>
-                        <span class="stat-value" id="actual-loss">0%</span>
+                        <span class="stat-label" id="loss-label">Actual Loss Rate</span>
+                        <span class="stat-value" id="actual-loss" aria-labelledby="loss-label">0%</span>
                     </div>
                 </div>
             </section>
 
-            <section class="theseus-test">
-                <h2>Protocol of Theseus Test</h2>
-                <p>Run parallel simulations across loss rates (0% → 99.9999%) to verify symmetric outcomes.</p>
-                <div class="theseus-controls">
+            <section class="theseus-test" aria-labelledby="theseus-heading">
+                <h2 id="theseus-heading">Protocol of Theseus Test</h2>
+                <p id="theseus-desc">Run parallel simulations across loss rates (0% → 99.9999%) to verify symmetric outcomes.</p>
+                <div class="theseus-controls" role="group" aria-label="Protocol of Theseus test controls">
                     <div class="control-group">
-                        <label for="trials-per-rate">Trials per rate: <span id="trials-value">3</span></label>
-                        <input type="range" id="trials-per-rate" min="1" max="10" value="3">
+                        <label for="trials-per-rate">Trials per rate: <span id="trials-value" aria-live="polite">3</span></label>
+                        <input type="range" id="trials-per-rate" min="1" max="10" value="3" aria-describedby="theseus-desc">
                     </div>
-                    <button id="run-theseus" class="primary">Run Protocol of Theseus</button>
-                    <span id="theseus-progress"></span>
+                    <button id="run-theseus" class="primary" aria-label="Run Protocol of Theseus test to verify symmetric outcomes">Run Protocol of Theseus</button>
+                    <span id="theseus-progress" role="status" aria-live="polite"></span>
                 </div>
-                <div class="theseus-results" id="theseus-results">
+                <div class="theseus-results" id="theseus-results" role="region" aria-label="Test results grid" aria-live="polite">
                     <!-- Results will be rendered here -->
                 </div>
-                <div class="failure-details" id="failure-details" style="display: none;">
+                <div class="failure-details" id="failure-details" style="display: none;" role="alert" aria-live="assertive">
                     <!-- Failure analysis will be shown here if asymmetric outcome occurs -->
                 </div>
             </section>
 
-            <section class="proof-nesting">
-                <h2>Proof Nesting Visualization</h2>
-                <p class="section-description">Each proof level embeds the previous, creating self-certifying artifacts</p>
-                <div class="nesting-diagram" id="nesting-diagram">
-                    <svg id="nesting-svg" viewBox="0 0 800 400"></svg>
+            <section class="proof-nesting" aria-labelledby="nesting-heading">
+                <h2 id="nesting-heading">Proof Nesting Visualization</h2>
+                <p class="section-description" id="nesting-desc">Each proof level embeds the previous, creating self-certifying artifacts</p>
+                <div class="nesting-diagram" id="nesting-diagram" role="img" aria-describedby="nesting-desc">
+                    <svg id="nesting-svg" viewBox="0 0 800 400" role="graphics-document" aria-label="Diagram showing how proofs are nested: Q contains T, T contains D, D contains C">
+                        <title>Proof Nesting Structure</title>
+                        <desc>A visual representation showing how each proof level (Commitment, Double, Triple, Quaternary) embeds the previous levels, demonstrating the bilateral construction property</desc>
+                    </svg>
                 </div>
             </section>
 
-            <section class="probability-scale">
-                <h2>Probability Scale Comparison</h2>
+            <section class="probability-scale" aria-labelledby="probability-heading">
+                <h2 id="probability-heading">Probability Scale Comparison</h2>
                 <p class="section-description">Understanding 10<sup>-1565</sup> in perspective</p>
                 <div class="scale-chart">
                     <div class="scale-item">
@@ -207,8 +434,8 @@
                 <p class="scale-insight">The protocol's failure probability is <strong>1,488 orders of magnitude</strong> smaller than guessing a 256-bit key on the first try.</p>
             </section>
 
-            <section class="risk-decomposition">
-                <h2>Risk Decomposition</h2>
+            <section class="risk-decomposition" aria-labelledby="risk-heading">
+                <h2 id="risk-heading">Risk Decomposition</h2>
                 <p class="section-description">Where does residual risk actually come from?</p>
                 <div class="risk-breakdown">
                     <div class="risk-item zero">
@@ -235,8 +462,8 @@
                 <p class="risk-insight">The dominant source of risk is no longer the protocol logic or channel unreliability. It's implementation fidelity—the hallmark of a <strong>solved problem in engineering</strong>.</p>
             </section>
 
-            <section class="lean-verification">
-                <h2>Lean 4 Formal Verification</h2>
+            <section class="lean-verification" aria-labelledby="lean-heading">
+                <h2 id="lean-heading">Lean 4 Formal Verification</h2>
                 <p class="section-description">Machine-verified correctness, not just testing</p>
                 <div class="lean-stats">
                     <div class="lean-stat">
@@ -277,25 +504,25 @@
                 <p class="peer-review-note">Proofs available in <code>lean4/</code> directory. Awaiting peer review.</p>
             </section>
 
-            <section class="explanation">
-                <h2>How It Works</h2>
-                <div class="explainer">
-                    <div class="step">
+            <section class="explanation" aria-labelledby="explanation-heading">
+                <h2 id="explanation-heading">How It Works</h2>
+                <div class="explainer" role="list" aria-label="Protocol phase explanations">
+                    <div class="step" role="listitem">
                         <h4>Phase 1: Commitment (C)</h4>
                         <p>Each party generates and floods a signed commitment: "I will attack if you agree"</p>
                         <code class="proof-formula">C_X = Sign_X("I will attack at dawn if you agree")</code>
                     </div>
-                    <div class="step">
+                    <div class="step" role="listitem">
                         <h4>Phase 2: Double Proof (D)</h4>
                         <p>Upon receiving counterparty's C, construct D embedding both commitments</p>
                         <code class="proof-formula">D_X = Sign_X(C_X ∥ C_Y ∥ "Both committed")</code>
                     </div>
-                    <div class="step">
+                    <div class="step" role="listitem">
                         <h4>Phase 3: Triple Proof (T)</h4>
                         <p>Upon receiving D, construct T containing all prior proofs</p>
                         <code class="proof-formula">T_X = Sign_X(D_X ∥ D_Y ∥ "Both have doubles")</code>
                     </div>
-                    <div class="step">
+                    <div class="step" role="listitem">
                         <h4>Phase 4: Quaternary Fixpoint (Q)</h4>
                         <p>The bilateral receipt pair that proves mutual constructibility</p>
                         <code class="proof-formula">Q_X = Sign_X(T_X ∥ T_Y ∥ "Fixpoint achieved")</code>
@@ -307,6 +534,7 @@
                     <em>Each half cryptographically proves the other half is constructible.</em>
                 </div>
             </section>
+            </div><!-- End Tab Pane 3: Interactive Visualizer -->
         </main>
 
         <footer>
@@ -324,5 +552,22 @@
     </div>
 
     <script type="module" src="visualizer.js"></script>
+    <script type="module">
+        import { initTabs } from './tabs.js';
+        import { ExplainerController } from './explainer.js';
+        import { initPerformanceTab } from './performance.js';
+
+        // Initialize tab navigation, explainer, and performance when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+
+            // Initialize explainer visualizations (Tab 1)
+            const explainer = new ExplainerController();
+            explainer.init();
+
+            // Initialize performance comparison (Tab 2)
+            initPerformanceTab();
+        });
+    </script>
 </body>
 </html>

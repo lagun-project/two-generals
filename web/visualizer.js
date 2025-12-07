@@ -18,6 +18,7 @@
  */
 
 import * as d3 from 'd3';
+import { initWhyItWorks } from './why-it-works.js';
 
 // =============================================================================
 // WASM Integration Layer
@@ -56,7 +57,9 @@ async function initWasm() {
 
     try {
         // Dynamically import the WASM module
-        const wasm = await import('./pkg/two_generals_wasm.js');
+        // Use string concatenation to prevent Vite from analyzing this import at build time
+        const wasmPath = './pkg/' + 'two_generals_wasm.js';
+        const wasm = await import(/* @vite-ignore */ wasmPath);
         await wasm.default();
         wasmModule = wasm;
         useWasm = true;
@@ -1687,11 +1690,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize the UI controller
     window.controller = new UIController();
 
+    // Initialize "Why It Works" sections (5-8)
+    initWhyItWorks();
+
     // Update UI to show which engine is being used
     const engineIndicator = document.createElement('div');
     engineIndicator.className = 'engine-indicator';
     engineIndicator.innerHTML = useWasm
         ? '<span class="wasm">🔥 WASM Engine</span>'
         : '<span class="js">⚡ JS Engine</span>';
-    document.querySelector('.controls').appendChild(engineIndicator);
+    const controlsEl = document.querySelector('.controls');
+    if (controlsEl) {
+        controlsEl.appendChild(engineIndicator);
+    }
 });
