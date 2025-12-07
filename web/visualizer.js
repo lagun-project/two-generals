@@ -214,6 +214,10 @@ class ProtocolParty {
             this.processEmbeddedDouble(msg.proof);
         }
 
+        // After extracting embedded proofs, try to advance through phases!
+        // This is critical for the bilateral construction property.
+        this.tryAdvanceToQuad();
+
         // Now process the message itself
         switch (msg.type) {
             case 'C':
