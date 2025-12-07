@@ -11,6 +11,25 @@
         <header>
             <h1>Two Generals Protocol</h1>
             <p class="subtitle">A Deterministically Failsafe Solution to the Coordinated Attack Problem</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-number">10<sup>-1565</sup></span>
+                    <span class="hero-label">Failure Probability</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-number">0</span>
+                    <span class="hero-label">Asymmetric Outcomes</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-number">33</span>
+                    <span class="hero-label">Lean 4 Theorems</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-number">0</span>
+                    <span class="hero-label">Sorry Statements</span>
+                </div>
+            </div>
+            <p class="hero-quote">"You would need to run this protocol once per picosecond, on every atom in a trillion universes, from the Big Bang until the heat death of the cosmos, and you still would not expect to see a single failure."</p>
         </header>
 
         <main>
@@ -139,6 +158,108 @@
                 </div>
             </section>
 
+            <section class="probability-scale">
+                <h2>Probability Scale Comparison</h2>
+                <p class="section-description">Understanding 10<sup>-1565</sup> in perspective</p>
+                <div class="scale-chart">
+                    <div class="scale-item">
+                        <div class="scale-bar" style="width: 0.00001%"></div>
+                        <span class="scale-value">10<sup>-1565</sup></span>
+                        <span class="scale-label">TGP Protocol Failure</span>
+                    </div>
+                    <div class="scale-item">
+                        <div class="scale-bar" style="width: 0.001%"></div>
+                        <span class="scale-value">10<sup>-77</sup></span>
+                        <span class="scale-label">Guessing 256-bit key first try</span>
+                    </div>
+                    <div class="scale-item">
+                        <div class="scale-bar" style="width: 0.1%"></div>
+                        <span class="scale-value">10<sup>-43</sup></span>
+                        <span class="scale-label">Spontaneous quantum tunneling of DNA</span>
+                    </div>
+                    <div class="scale-item">
+                        <div class="scale-bar" style="width: 1%"></div>
+                        <span class="scale-value">10<sup>-9</sup></span>
+                        <span class="scale-label">Cosmic ray bit flip (per hour)</span>
+                    </div>
+                    <div class="scale-item">
+                        <div class="scale-bar" style="width: 10%"></div>
+                        <span class="scale-value">10<sup>-6</sup></span>
+                        <span class="scale-label">Airplane fatality per flight</span>
+                    </div>
+                </div>
+                <p class="scale-insight">The protocol's failure probability is <strong>1,488 orders of magnitude</strong> smaller than guessing a 256-bit key on the first try.</p>
+            </section>
+
+            <section class="risk-decomposition">
+                <h2>Risk Decomposition</h2>
+                <p class="section-description">Where does residual risk actually come from?</p>
+                <div class="risk-breakdown">
+                    <div class="risk-item zero">
+                        <span class="risk-label">Protocol Logic</span>
+                        <span class="risk-value">0</span>
+                        <span class="risk-note">Lean-proven safe</span>
+                    </div>
+                    <div class="risk-item negligible">
+                        <span class="risk-label">Liveness Tail</span>
+                        <span class="risk-value">&lt;10<sup>-1565</sup></span>
+                        <span class="risk-note">Adjustable via flooding</span>
+                    </div>
+                    <div class="risk-item negligible">
+                        <span class="risk-label">Cryptographic</span>
+                        <span class="risk-value">≈2<sup>-128</sup></span>
+                        <span class="risk-note">Ed25519 signature</span>
+                    </div>
+                    <div class="risk-item material">
+                        <span class="risk-label">Implementation</span>
+                        <span class="risk-value">~0.04%</span>
+                        <span class="risk-note">Only material contributor</span>
+                    </div>
+                </div>
+                <p class="risk-insight">The dominant source of risk is no longer the protocol logic or channel unreliability. It's implementation fidelity—the hallmark of a <strong>solved problem in engineering</strong>.</p>
+            </section>
+
+            <section class="lean-verification">
+                <h2>Lean 4 Formal Verification</h2>
+                <p class="section-description">Machine-verified correctness, not just testing</p>
+                <div class="lean-stats">
+                    <div class="lean-stat">
+                        <span class="lean-number">33+</span>
+                        <span class="lean-label">Theorems</span>
+                    </div>
+                    <div class="lean-stat">
+                        <span class="lean-number">0</span>
+                        <span class="lean-label">Sorry Statements</span>
+                    </div>
+                    <div class="lean-stat">
+                        <span class="lean-number">4</span>
+                        <span class="lean-label">Proof Layers</span>
+                    </div>
+                    <div class="lean-stat">
+                        <span class="lean-number">5.5s</span>
+                        <span class="lean-label">Build Time</span>
+                    </div>
+                </div>
+                <div class="lean-theorems">
+                    <div class="theorem">
+                        <code>theorem safety</code>
+                        <span>Impossible for one party to ATTACK while other REJECTs</span>
+                    </div>
+                    <div class="theorem">
+                        <code>theorem attack_needs_both</code>
+                        <span>ATTACK requires both parties reaching commitment</span>
+                    </div>
+                    <div class="theorem">
+                        <code>theorem bilateral_receipt_implies_common_knowledge</code>
+                        <span>Bilateral receipt pair establishes full common knowledge</span>
+                    </div>
+                    <div class="theorem">
+                        <code>theorem common_knowledge_implies_coordination</code>
+                        <span>Common knowledge guarantees symmetric action</span>
+                    </div>
+                </div>
+            </section>
+
             <section class="explanation">
                 <h2>How It Works</h2>
                 <div class="explainer">
@@ -172,7 +293,16 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 Riff Labs | AGPLv3 | <em>e cinere surgemus</em></p>
+            <div class="dedication">
+                <p class="dedication-text">In memory of Aaron Swartz (1986–2013)</p>
+                <p class="dedication-quote">"Information is power. But like all power, there are those who want to keep it for themselves."</p>
+                <p class="dedication-note">This work is released freely because open protocols are infrastructure, not property.</p>
+            </div>
+            <div class="footer-links">
+                <a href="../paper/main.pdf" class="paper-link">📄 Read the Paper (PDF)</a>
+                <a href="https://github.com/riffcc/two-generals" class="github-link">🔗 View Source</a>
+            </div>
+            <p class="footer-meta">&copy; 2025 Riff Labs | AGPLv3 | <em>e cinere surgemus</em></p>
         </footer>
     </div>
 

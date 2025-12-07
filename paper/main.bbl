@@ -1,0 +1,117 @@
+\begin{thebibliography}{10}
+
+\bibitem{akkoyunlu1975some}
+Eralp~A. Akkoyunlu, Kattamuri Ekanadham, and Richard~V. Huber.
+\newblock Some constraints and tradeoffs in the design of network
+  communications.
+\newblock {\em ACM SIGOPS Operating Systems Review}, 9(5):67--74, 1975.
+\newblock Original formulation of the coordinated attack problem.
+
+\bibitem{benor1983another}
+Michael Ben-Or.
+\newblock Another advantage of free choice: Completely asynchronous agreement
+  protocols.
+\newblock In {\em Proceedings of the Second Annual ACM Symposium on Principles
+  of Distributed Computing (PODC)}, pages 27--30. ACM, 1983.
+\newblock Randomized Byzantine consensus.
+
+\bibitem{ed25519}
+Daniel~J. Bernstein, Niels Duif, Tanja Lange, Peter Schwabe, and Bo-Yin Yang.
+\newblock High-speed high-security signatures.
+\newblock Journal of Cryptographic Engineering, 2012.
+\newblock Ed25519 signature scheme specification.
+
+\bibitem{boneh2001short}
+Dan Boneh, Ben Lynn, and Hovav Shacham.
+\newblock Short signatures from the {W}eil pairing.
+\newblock {\em Journal of Cryptology}, 17(4):297--319, 2004.
+\newblock BLS signatures enabling compact threshold aggregation.
+
+\bibitem{bracha1987asynchronous}
+Gabriel Bracha.
+\newblock Asynchronous byzantine agreement protocols.
+\newblock {\em Information and Computation}, 75(2):130--143, 1987.
+\newblock Reliable broadcast protocols.
+
+\bibitem{buchman2016tendermint}
+Ethan Buchman, Jae Kwon, and Zarko Milosevic.
+\newblock The latest gossip on {BFT} consensus.
+\newblock In {\em arXiv preprint arXiv:1807.04938}, 2018.
+\newblock Tendermint BFT consensus protocol.
+
+\bibitem{cachin2016blockchain}
+Christian Cachin and Marko Vukoli{\'c}.
+\newblock Blockchain consensus protocols in the wild.
+\newblock {\em arXiv preprint arXiv:1707.01873}, 2017.
+\newblock Survey of blockchain consensus mechanisms.
+
+\bibitem{castro1999practical}
+Miguel Castro and Barbara Liskov.
+\newblock Practical byzantine fault tolerance.
+\newblock In {\em Proceedings of the Third Symposium on Operating Systems
+  Design and Implementation (OSDI)}, pages 173--186, New Orleans, Louisiana,
+  1999. USENIX Association.
+\newblock Foundational practical BFT with O(n²) message complexity.
+
+\bibitem{dwork1988consensus}
+Cynthia Dwork, Nancy Lynch, and Larry Stockmeyer.
+\newblock Consensus in the presence of partial synchrony.
+\newblock In {\em Journal of the ACM}, volume~35, pages 288--323. ACM, 1988.
+\newblock Partial synchrony model for consensus.
+
+\bibitem{fagin1995reasoning}
+Ronald Fagin, Joseph~Y. Halpern, Yoram Moses, and Moshe~Y. Vardi.
+\newblock {\em Reasoning About Knowledge}.
+\newblock MIT Press, Cambridge, MA, 1995.
+\newblock Definitive textbook on epistemic logic in distributed systems.
+
+\bibitem{fischer1985impossibility}
+Michael~J. Fischer, Nancy~A. Lynch, and Michael~S. Paterson.
+\newblock Impossibility of distributed consensus with one faulty process.
+\newblock In {\em Journal of the ACM}, volume~32, pages 374--382. ACM, 1985.
+\newblock FLP impossibility for asynchronous consensus.
+
+\bibitem{gray1978notes}
+Jim Gray.
+\newblock Notes on data base operating systems.
+\newblock In {\em Operating Systems: An Advanced Course}, pages 393--481,
+  London, UK, 1978. Springer-Verlag.
+\newblock First formal description of the Two Generals Problem.
+
+\bibitem{halpern1990knowledge}
+Joseph~Y. Halpern and Yoram Moses.
+\newblock Knowledge and common knowledge in a distributed environment.
+\newblock {\em Journal of the ACM}, 37(3):549--587, 1990.
+\newblock Formal epistemic logic framework proving common knowledge
+  impossibility.
+
+\bibitem{komlo2020frost}
+Chelsea Komlo and Ian Goldberg.
+\newblock {FROST}: Flexible round-optimized {S}chnorr threshold signatures.
+\newblock In {\em Selected Areas in Cryptography (SAC)}, pages 34--65.
+  Springer, 2020.
+\newblock Efficient threshold Schnorr signatures.
+
+\bibitem{lamport1982byzantine}
+Leslie Lamport, Robert Shostak, and Marshall Pease.
+\newblock The {B}yzantine generals problem.
+\newblock In {\em ACM Transactions on Programming Languages and Systems},
+  volume~4, pages 382--401. ACM, 1982.
+\newblock Foundational Byzantine agreement formulation.
+
+\bibitem{miller2016honey}
+Andrew Miller, Yu~Xia, Kyle Croman, Elaine Shi, and Dawn Song.
+\newblock The honey badger of {BFT} protocols.
+\newblock In {\em Proceedings of the 2016 ACM SIGSAC Conference on Computer and
+  Communications Security}, pages 31--42. ACM, 2016.
+\newblock Asynchronous BFT with optimal resilience.
+
+\bibitem{yin2019hotstuff}
+Maofan Yin, Dahlia Malkhi, Michael~K. Reiter, Guy~Golan Gueta, and Ittai
+  Abraham.
+\newblock {HotStuff}: {BFT} consensus with linearity and responsiveness.
+\newblock In {\em Proceedings of the 2019 ACM Symposium on Principles of
+  Distributed Computing (PODC)}, pages 347--356. ACM, 2019.
+\newblock Linear complexity BFT with pipelining.
+
+\end{thebibliography}
