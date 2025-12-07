@@ -35,8 +35,8 @@ cd python
 
 # Run pytest with one-line-per-test output
 PYTEST_ARGS="-v --tb=line"
-if [[ "$QUICK_MODE" == "false" ]]; then
-    PYTEST_ARGS="$PYTEST_ARGS --run-slow"
+if [[ "$QUICK_MODE" == "true" ]]; then
+    PYTEST_ARGS="$PYTEST_ARGS -m 'not slow'"
 fi
 
 echo "Running: pytest $PYTEST_ARGS"
@@ -59,8 +59,10 @@ cd rust
 echo "Running: cargo test"
 echo ""
 
-# Run cargo test directly - output streams in real-time
-cargo test 2>&1 || RUST_FAILED=1
+# Run cargo test - filter out download/compile noise, show test results
+set -o pipefail
+cargo test 2>&1 | grep -v -e "^[[:space:]]*Compiling" -e "^[[:space:]]*Downloading" -e "^[[:space:]]*Downloaded" -e "^[[:space:]]*Updating" -e "^[[:space:]]*Fetch" -e "^[[:space:]]*Locking" || RUST_FAILED=1
+set +o pipefail
 
 cd ..
 echo ""
@@ -88,8 +90,8 @@ fi
 
 echo ""
 
-# Run lake build and show output
-lake build 2>&1 | tee /tmp/lake_build_output.txt || LEAN_FAILED=1
+# Run lake build and show output (filter download noise)
+lake build 2>&1 | tee /tmp/lake_build_output.txt | grep -v -e "^Downloading" -e "^Unpacking" -e "^lake:" || LEAN_FAILED=1
 
 # Count theorems from the output
 THEOREM_COUNT=$(grep -c "^info:" /tmp/lake_build_output.txt 2>/dev/null || echo "0")
