@@ -33,8 +33,8 @@ echo "------------------------------------------------------------"
 
 cd python
 
-# Run pytest with one-line-per-test output
-PYTEST_ARGS="-v --tb=line"
+# Run pytest with one-line-per-test output (full test names)
+PYTEST_ARGS="-vv --tb=no"
 if [[ "$QUICK_MODE" == "true" ]]; then
     PYTEST_ARGS="$PYTEST_ARGS -m 'not slow'"
 fi
