@@ -725,6 +725,10 @@ where $n$ is the number of transmission attempts. For continuous flooding at rat
 With $p = 0.01$, $r = 1000$, $\tau = 10$s: $\Pr[\text{complete}] > 1 - 10^{-1565}$.
 \end{proof}
 
+\begin{remark}[Physical Interpretation of $10^{-1565}$]
+A failure probability of $10^{-1565}$ is so fantastically small that \textbf{you would need to run this protocol once per picosecond, on every atom in a trillion universes, from the Big Bang until the heat death of the cosmos, and you still would not expect to see a single failure}. For context: there are approximately $10^{80}$ atoms in the observable universe. The probability $10^{-1565}$ is $10^{1485}$ times smaller than one divided by that count. This is not a probability in any meaningful physical sense---it is a formality. The protocol \emph{cannot} fail by random chance; it can only fail through implementation defects, hardware errors, or environmental pathologies not captured by the fair-lossy model.
+\end{remark}
+
 \begin{theorem}[Validity]
 \label{thm:validity}
 If both parties intend to attack and the network is fair-lossy, both decide $\Attack$.
