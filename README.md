@@ -7,7 +7,7 @@
 [![Paper](https://img.shields.io/badge/Paper-25%20pages-red.svg)](./paper/main.pdf)
 
 ---
-
+🏗️🚧 UNDER CONSTRUCTION 👷👷‍♀️
 ## Executive Summary
 
 For 47 years, the Two Generals Problem has been considered mathematically impossible to solve over lossy channels. We prove this interpretation incorrect through **cryptographic proof stapling** and **bilateral construction properties**.
