@@ -14,12 +14,16 @@
   Since the V3 protocol needs ~6 deliveries (due to nested embedding), this is
   more than sufficient for protocol completion.
 
+  Now uses Mathlib for Real number arithmetic - eliminates trivial axioms!
+
   Solution: Wings@riff.cc (Riff Labs)
   Formal Verification: With AI assistance from Claude
   Date: December 2025
 -/
 
 import NetworkModel
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
 
 namespace ExtremeLoss
 
@@ -129,12 +133,15 @@ theorem extreme_loss_single_direction_success :
   -- This is > 1 - 10^(-30) for expected = 64.8
   exact extreme_flooding_bound net hbase hcopies
 
--- Axiom: If single direction succeeds with p ≥ 0.999999,
+-- Theorem: If single direction succeeds with p ≥ 0.999999,
 -- then bilateral (p²) ≥ 0.999998
-axiom bilateral_from_single :
-  ∀ (p : Real),
-    p ≥ 0.999999 →
-    p * p ≥ 0.999998
+-- Previously axiom, now proven via Mathlib
+theorem bilateral_from_single (p : ℝ) (hp : p ≥ 0.999999) : p * p ≥ 0.999998 := by
+  have h1 : p ≥ 0 := by linarith
+  have h2 : (0.999999 : ℝ) ≥ 0 := by norm_num
+  calc p * p ≥ 0.999999 * 0.999999 := mul_self_le_mul_self h2 hp
+    _ = 0.999998000001 := by norm_num
+    _ ≥ 0.999998 := by norm_num
 
 -- Theorem: Bilateral delivery succeeds with overwhelming probability
 theorem extreme_loss_bilateral_success :
@@ -150,11 +157,12 @@ theorem extreme_loss_bilateral_success :
   unfold bilateral_success_prob
   exact bilateral_from_single (delivery_success_prob net) hsingle
 
--- Axiom: Transitivity for ≥
-axiom ge_trans : ∀ (a b c : Real), a ≥ b → b ≥ c → a ≥ c
+-- Theorem: Transitivity for ≥ (previously axiom, now proven via Mathlib)
+theorem ge_trans (a b c : ℝ) (hab : a ≥ b) (hbc : b ≥ c) : a ≥ c :=
+  le_trans hbc hab
 
--- Axiom: 0.999998 ≥ 0.999 (trivial numerical fact)
-axiom numerical_bound_999998 : (0.999998 : Real) ≥ (0.999 : Real)
+-- Theorem: 0.999998 ≥ 0.999 (previously axiom, now proven via norm_num)
+theorem numerical_bound_999998 : (0.999998 : ℝ) ≥ (0.999 : ℝ) := by norm_num
 
 -- Theorem: Extreme loss network achieves protocol reliability threshold
 theorem extreme_loss_reliable :
@@ -230,8 +238,8 @@ axiom shannon_noisy_channel :
     -- reliable communication is achievable
     ∃ (n : Nat), true
 
--- Axiom: 0.5 > 0 (trivial numerical fact)
-axiom half_positive : (0.5 : Real) > (0 : Real)
+-- Theorem: 0.5 > 0 (previously axiom, now proven via norm_num)
+theorem half_positive : (0.5 : ℝ) > (0 : ℝ) := by norm_num
 
 -- Corollary: TGP works for ANY positive delivery probability
 theorem tgp_works_any_positive_delivery :
@@ -254,17 +262,32 @@ theorem tgp_works_any_positive_delivery :
 
 -- ✅ ExtremeLoss.lean Status: Extreme Loss Proofs COMPLETE
 --
--- THEOREMS (6 theorems, ALL PROVEN):
+-- THEOREMS (10 theorems, ALL PROVEN):
 -- 1. extreme_loss_sufficient_expectation ✓ - Expected deliveries (64.8) >> required (6)
 -- 2. extreme_loss_single_direction_success ✓ - Uses flooding_convergence axiom
--- 3. extreme_loss_bilateral_success ✓ - Uses prob_square_bound axiom
--- 4. extreme_loss_reliable ✓ - Uses numerical_bound axiom
+-- 3. extreme_loss_bilateral_success ✓ - Uses prob_square_bound theorem
+-- 4. extreme_loss_reliable ✓ - Uses numerical_bound theorem
 -- 5. attack_at_dawn_coordination ✓ - Main scenario theorem
 -- 6. tgp_works_any_positive_delivery ✓ - General positive delivery theorem
+-- 7. bilateral_from_single ✓ - NEW: Proven via Mathlib (was axiom)
+-- 8. ge_trans ✓ - NEW: Proven via Mathlib le_trans (was axiom)
+-- 9. numerical_bound_999998 ✓ - NEW: Proven via norm_num (was axiom)
+-- 10. half_positive ✓ - NEW: Proven via norm_num (was axiom)
 --
--- AXIOMS USED (2 trivial numerical facts):
--- - numerical_bound_999998: 0.999998 ≥ 0.999
--- - half_positive: 0.5 > 0
+-- AXIOMS ELIMINATED via Mathlib:
+-- - bilateral_from_single (p ≥ 0.999999 → p² ≥ 0.999998)
+-- - ge_trans (transitivity for ≥)
+-- - numerical_bound_999998 (0.999998 ≥ 0.999)
+-- - half_positive (0.5 > 0)
+--
+-- REMAINING AXIOMS (7 - statistical/empirical, not arithmetic):
+-- 1. expected_deliveries_extreme - Poisson expected value
+-- 2. poisson_tail_bound - Tail bound for Poisson distribution
+-- 3. flooding_expected_deliveries - Expected deliveries formula
+-- 4. high_expected_implies_success - High expectation → high probability
+-- 5. extreme_flooding_bound - Numerical bound for extreme case
+-- 6. simulation_validates_theory - Empirical validation claim
+-- 7. shannon_noisy_channel - Shannon's theorem reference
 --
 -- KEY RESULTS:
 -- - At 99.9999% packet loss with 1000 msg/sec for 18 hours:

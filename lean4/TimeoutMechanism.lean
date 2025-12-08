@@ -7,7 +7,11 @@
   - Both parties use same timeout configuration
   - Timeout triggers coordinated abort decision
   - Safety maintained: timeout → both abort (coordinated failure)
+
+  Now uses Mathlib for Bool facts - eliminates unnecessary axioms!
 -/
+
+import Mathlib.Tactic
 
 namespace TimeoutMechanism
 
@@ -31,9 +35,12 @@ noncomputable instance : Repr Time := ⟨fun t _ => Time.repr t⟩
 axiom time_lt_decidable : ∀ (a b : Time), Decidable (a < b)
 axiom time_le_decidable : ∀ (a b : Time), Decidable (a ≤ b)
 
--- Boolean axioms
-axiom bool_not_true_eq_false : ∀ (b : Bool), (¬b = true) → b = false
-axiom bool_not_false_eq_true : ∀ (b : Bool), (¬b = false) → b = true
+-- Boolean theorems (previously axioms, now proven via Mathlib)
+theorem bool_not_true_eq_false (b : Bool) (h : ¬b = true) : b = false := by
+  cases b <;> simp_all
+
+theorem bool_not_false_eq_true (b : Bool) (h : ¬b = false) : b = true := by
+  cases b <;> simp_all
 
 -- Time axioms
 axiom time_le_refl : ∀ (t : Time), t ≤ t
@@ -70,8 +77,8 @@ inductive Decision : Type where
   | Abort : Decision
   deriving Repr, DecidableEq
 
--- Decisions are distinct
-axiom attack_ne_abort : Decision.Attack ≠ Decision.Abort
+-- Decisions are distinct (previously axiom, now proven via decide)
+theorem attack_ne_abort : Decision.Attack ≠ Decision.Abort := by decide
 
 -- Party state with receipt capability
 structure PartyState where
@@ -218,7 +225,7 @@ noncomputable def timeout_scenario : ProtocolStateTimeout :=
 
 /-! ## Verification Summary -/
 
--- ✅ Layer 3 (Timeout Mechanism) COMPLETE: 4 theorems proven, 0 sorry statements
+-- ✅ Layer 3 (Timeout Mechanism) COMPLETE: 7 theorems proven, 0 sorry statements
 --
 -- PROVEN THEOREMS:
 -- 1. receipt_implies_attack ✓
@@ -236,19 +243,22 @@ noncomputable def timeout_scenario : ProtocolStateTimeout :=
 --    Uses bilateral_receipt_property axioms (to be proven in Layer 4)
 --    This is the COMPLETE safety theorem for the timeout mechanism
 --
--- DESIGN NOTE:
--- - timeout_safety (without bilateral property) was removed
--- - It had edge cases where one party has receipt and other doesn't
--- - These cases are impossible with bilateral receipt property
--- - timeout_safety_with_bilateral is the correct, complete theorem
--- - No sorry statements needed - architectural dependencies use axioms
+-- 5. bool_not_true_eq_false ✓ - NEW: Proven via Mathlib (was axiom)
+-- 6. bool_not_false_eq_true ✓ - NEW: Proven via Mathlib (was axiom)
+-- 7. attack_ne_abort ✓ - NEW: Proven via decide (was axiom)
 --
--- AXIOMS (all justified):
--- - Time operations: add, lt, decidability (standard time arithmetic)
+-- AXIOMS ELIMINATED via Mathlib:
+-- - bool_not_true_eq_false (boolean logic)
+-- - bool_not_false_eq_true (boolean logic)
+-- - attack_ne_abort (Decision.Attack ≠ Decision.Abort)
+--
+-- REMAINING AXIOMS (14 - Time type and protocol properties):
+-- - Time type axioms (7): Time, zero, add, le, lt, sub, repr
+-- - Time decidability (2): time_lt_decidable, time_le_decidable
+-- - Time properties (5): le_refl, le_trans, add_comm, add_le, le_antisymm
+-- - current_time: Current time value
 -- - bilateral_receipt_property: Alice has receipt → Bob has receipt
 -- - bilateral_receipt_property_sym: Bob has receipt → Alice has receipt
--- - attack_ne_abort: Decision.Attack ≠ Decision.Abort (by construction)
--- - bool_not_true_eq_false, bool_not_false_eq_true (boolean logic)
 --
 -- KEY RESULTS:
 -- 1. Timeout provides coordinated abort (when neither has receipt)
