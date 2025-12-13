@@ -2924,3 +2924,307 @@ footer em {
         justify-content: center;
     }
 }
+
+/* =============================================================================
+   Loading States and Overlays
+   ============================================================================= */
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(13, 17, 23, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--bg-tertiary);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-message {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Progress overlay */
+.progress-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(13, 17, 23, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.progress-content {
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+}
+
+.progress-message {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.progress-bar-container {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    height: 12px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    border-radius: 8px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-percent {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+}
+
+/* =============================================================================
+   Tooltips
+   ============================================================================= */
+
+.tooltip {
+    position: absolute;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    pointer-events: none;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    max-width: 250px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    border: 6px solid transparent;
+}
+
+/* Tooltip positions */
+.tooltip-top::before {
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top-color: var(--border-color);
+}
+
+.tooltip-bottom::before {
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-color: var(--border-color);
+}
+
+.tooltip-left::before {
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left-color: var(--border-color);
+}
+
+.tooltip-right::before {
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-right-color: var(--border-color);
+}
+
+/* =============================================================================
+   Onboarding Overlay - REMOVED
+   User preference: No fullscreen takeover UIs. Keep demos unobtrusive.
+   See CLAUDE.md for guidelines.
+   ============================================================================= */
+
+/* =============================================================================
+   Micro-interactions
+   ============================================================================= */
+
+/* Button ripple effect */
+.button-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(88, 166, 255, 0.4);
+    pointer-events: none;
+    transform: scale(0);
+    animation: ripple-animation 0.6s ease-out;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Button pulse effect */
+.button-pulse {
+    animation: pulse-animation 2s ease-in-out infinite;
+}
+
+@keyframes pulse-animation {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(88, 166, 255, 0);
+    }
+}
+
+/* Hover glow */
+button:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+}
+
+button.primary:hover:not(:disabled) {
+    box-shadow: 0 4px 16px rgba(88, 166, 255, 0.4);
+}
+
+/* =============================================================================
+   Scroll-triggered animations
+   ============================================================================= */
+
+/* Fade-in animation */
+.fade-in {
+    opacity: 0;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+    opacity: 1;
+}
+
+/* Slide-in from left */
+.slide-in-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.slide-in-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Slide-in from right */
+.slide-in-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.slide-in-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Counter animation */
+.counter {
+    font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   Tab Transitions
+   ============================================================================= */
+
+/* Note: Main tab-pane display rules are defined earlier in the file (line ~1446)
+   These are just the transition animations */
+
+.tab-pane.slide-forward {
+    animation: slide-in-forward 0.3s ease;
+}
+
+.tab-pane.slide-backward {
+    animation: slide-in-backward 0.3s ease;
+}
+
+@keyframes slide-in-forward {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-backward {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* =============================================================================
+   Accessibility: Disable animations for reduced motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .loading-spinner,
+    .button-ripple,
+    .button-pulse,
+    .fade-in,
+    .slide-in-left,
+    .slide-in-right,
+    .tab-pane {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .fade-in,
+    .slide-in-left,
+    .slide-in-right {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

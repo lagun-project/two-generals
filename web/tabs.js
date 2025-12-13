@@ -20,7 +20,8 @@ export class TabController {
         }
 
         this.tabs = this.container.querySelectorAll('.tab-button');
-        this.panes = this.container.querySelectorAll('.tab-pane');
+        // Tab panes are siblings of the container, not children
+        this.panes = document.querySelectorAll('.tab-pane');
         this.activeTab = 0;
 
         this.init();
@@ -34,21 +35,42 @@ export class TabController {
         this.tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => this.switchTo(index));
 
-            // Keyboard navigation
+            // Keyboard navigation (WCAG 2.1 AA: Keyboard - 2.1.1)
             tab.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    this.switchTo((index + 1) % this.tabs.length);
-                } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    this.switchTo((index - 1 + this.tabs.length) % this.tabs.length);
-                } else if (e.key === 'Home') {
-                    e.preventDefault();
-                    this.switchTo(0);
-                } else if (e.key === 'End') {
-                    e.preventDefault();
-                    this.switchTo(this.tabs.length - 1);
+                let newIndex = index;
+
+                switch(e.key) {
+                    case 'ArrowRight':
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        newIndex = (index + 1) % this.tabs.length;
+                        break;
+                    case 'ArrowLeft':
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        newIndex = (index - 1 + this.tabs.length) % this.tabs.length;
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        newIndex = 0;
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        newIndex = this.tabs.length - 1;
+                        break;
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        newIndex = index;
+                        break;
+                    default:
+                        return; // Don't handle other keys
                 }
+
+                this.switchTo(newIndex);
+
+                // Announce tab change to screen readers
+                this.announceTabChange(newIndex);
             });
         });
 
@@ -118,6 +140,40 @@ export class TabController {
      */
     getActiveIndex() {
         return this.activeTab;
+    }
+
+    /**
+     * Announce tab change to screen readers (WCAG 2.1 AA: Status Messages - 4.1.3)
+     * @param {number} index - Tab index that was activated
+     */
+    announceTabChange(index) {
+        const tabNames = [
+            'The Problem and Solution',
+            'Live Protocol Comparison',
+            'Interactive Visualizer'
+        ];
+
+        // Create or get announcement element
+        let announcer = document.getElementById('tab-announcer');
+        if (!announcer) {
+            announcer = document.createElement('div');
+            announcer.id = 'tab-announcer';
+            announcer.setAttribute('role', 'status');
+            announcer.setAttribute('aria-live', 'polite');
+            announcer.setAttribute('aria-atomic', 'true');
+            announcer.style.position = 'absolute';
+            announcer.style.left = '-10000px';
+            announcer.style.width = '1px';
+            announcer.style.height = '1px';
+            announcer.style.overflow = 'hidden';
+            document.body.appendChild(announcer);
+        }
+
+        // Clear and announce
+        announcer.textContent = '';
+        setTimeout(() => {
+            announcer.textContent = `Now showing: ${tabNames[index]} tab`;
+        }, 100);
     }
 }
 

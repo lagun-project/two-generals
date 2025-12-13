@@ -62,10 +62,10 @@
                     <div class="battlefield-container">
                         <div id="battlefield-scene" role="img" aria-label="Animated battlefield showing two armies attempting to coordinate through enemy territory"></div>
                     </div>
-                    <div class="demo-controls">
-                        <button data-section-action="start-battlefield" class="primary">Start Demo</button>
-                        <button data-section-action="stop-battlefield">Stop</button>
-                        <button data-section-action="reset-battlefield">Reset</button>
+                    <div class="demo-controls" role="group" aria-label="Battlefield demo controls">
+                        <button data-section-action="start-battlefield" class="primary" aria-label="Start battlefield simulation">Start Demo</button>
+                        <button data-section-action="stop-battlefield" aria-label="Stop battlefield simulation">Stop</button>
+                        <button data-section-action="reset-battlefield" aria-label="Reset battlefield to initial state">Reset</button>
                     </div>
                 </section>
 
@@ -76,10 +76,10 @@
                     <div class="regress-container">
                         <div id="infinite-regress" role="img" aria-label="Visualization showing infinite chain of acknowledgments"></div>
                     </div>
-                    <div class="demo-controls">
-                        <button data-section-action="run-regress" class="primary">Run Demo</button>
-                        <button data-section-action="step-regress">Step Forward</button>
-                        <button data-section-action="reset-regress">Reset</button>
+                    <div class="demo-controls" role="group" aria-label="Infinite regress demo controls">
+                        <button data-section-action="run-regress" class="primary" aria-label="Run infinite regress demonstration">Run Demo</button>
+                        <button data-section-action="step-regress" aria-label="Advance one step in the demonstration">Step Forward</button>
+                        <button data-section-action="reset-regress" aria-label="Reset infinite regress demo to beginning">Reset</button>
                     </div>
                     <div class="regress-explanation">
                         <p><strong>The Problem:</strong> Every message could be "the last one" that gets lost, leaving one party uncertain forever.</p>
@@ -556,6 +556,7 @@
         import { initTabs } from './tabs.js';
         import { ExplainerController } from './explainer.js';
         import { initPerformanceTab } from './performance.js';
+        import { initAnimations } from './animations.js';
 
         // Initialize tab navigation, explainer, and performance when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
@@ -567,6 +568,9 @@
 
             // Initialize performance comparison (Tab 2)
             initPerformanceTab();
+
+            // Initialize animations and visual polish
+            initAnimations();
         });
     </script>
 </body>

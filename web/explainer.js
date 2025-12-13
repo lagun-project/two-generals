@@ -9,625 +9,12 @@
  */
 
 import * as d3 from 'd3';
+import { Battlefield3D } from './components/battlefield-3d.js';
 
 // =============================================================================
-// Section 1: Battlefield Scene Animation
+// Section 1: Battlefield Scene Animation (3D)
+// Now using Three.js with homing pigeons
 // =============================================================================
-
-export class BattlefieldScene {
-    /**
-     * Animated battlefield visualization showing:
-     * - Two armies on opposite sides of a valley
-     * - An enemy city in the middle
-     * - Messengers attempting to cross through enemy territory
-     * - The coordination dilemma: attack together or die separately
-     */
-    constructor(container) {
-        this.container = d3.select(container);
-        this.width = 800;
-        this.height = 450;
-        this.svg = null;
-        this.isAnimating = false;
-        this.animationFrame = null;
-        this.messengers = [];
-        this.messengerIdCounter = 0;
-
-        this.colors = {
-            sky: '#1a1a2e',
-            mountain: '#16213e',
-            ground: '#1f4037',
-            alice: '#58a6ff',
-            bob: '#3fb950',
-            enemy: '#f85149',
-            messenger: '#d29922',
-            text: '#f0f6fc',
-            muted: '#8b949e'
-        };
-
-        this.state = {
-            aliceDecision: 'waiting',
-            bobDecision: 'waiting',
-            messagesAttempted: 0,
-            messagesLost: 0,
-            messagesDelivered: 0,
-            scenario: 'dilemma' // 'dilemma', 'alice_attacks', 'bob_attacks', 'both_attack', 'both_wait'
-        };
-    }
-
-    init() {
-        this.container.html('');
-
-        this.svg = this.container.append('svg')
-            .attr('viewBox', `0 0 ${this.width} ${this.height}`)
-            .attr('preserveAspectRatio', 'xMidYMid meet')
-            .style('width', '100%')
-            .style('max-width', '800px')
-            .style('height', 'auto');
-
-        this.drawBackground();
-        this.drawMountains();
-        this.drawEnemyCity();
-        this.drawArmies();
-        this.drawUI();
-        this.drawNarrative();
-    }
-
-    drawBackground() {
-        // Sky gradient
-        const defs = this.svg.append('defs');
-
-        const skyGradient = defs.append('linearGradient')
-            .attr('id', 'sky-gradient')
-            .attr('x1', '0%').attr('y1', '0%')
-            .attr('x2', '0%').attr('y2', '100%');
-
-        skyGradient.append('stop')
-            .attr('offset', '0%')
-            .attr('stop-color', '#0f0f23');
-
-        skyGradient.append('stop')
-            .attr('offset', '100%')
-            .attr('stop-color', '#1a1a2e');
-
-        this.svg.append('rect')
-            .attr('width', this.width)
-            .attr('height', this.height)
-            .attr('fill', 'url(#sky-gradient)');
-
-        // Stars
-        for (let i = 0; i < 50; i++) {
-            this.svg.append('circle')
-                .attr('cx', Math.random() * this.width)
-                .attr('cy', Math.random() * this.height * 0.4)
-                .attr('r', Math.random() * 1.5 + 0.5)
-                .attr('fill', '#fff')
-                .attr('opacity', Math.random() * 0.5 + 0.3);
-        }
-    }
-
-    drawMountains() {
-        // Background mountains
-        const mountainPath = `
-            M0,200
-            Q100,150 200,180
-            Q300,120 400,160
-            Q500,100 600,150
-            Q700,130 800,170
-            L800,${this.height} L0,${this.height} Z
-        `;
-
-        this.svg.append('path')
-            .attr('d', mountainPath)
-            .attr('fill', this.colors.mountain)
-            .attr('opacity', 0.8);
-
-        // Foreground terrain
-        const terrainPath = `
-            M0,280
-            Q100,250 200,270
-            Q400,220 600,260
-            Q700,240 800,260
-            L800,${this.height} L0,${this.height} Z
-        `;
-
-        this.svg.append('path')
-            .attr('d', terrainPath)
-            .attr('fill', this.colors.ground);
-    }
-
-    drawEnemyCity() {
-        const centerX = this.width / 2;
-        const cityY = 270;
-
-        // City walls
-        this.svg.append('rect')
-            .attr('x', centerX - 60)
-            .attr('y', cityY)
-            .attr('width', 120)
-            .attr('height', 60)
-            .attr('fill', '#2d1f1f')
-            .attr('stroke', this.colors.enemy)
-            .attr('stroke-width', 2)
-            .attr('rx', 4);
-
-        // Towers
-        [centerX - 50, centerX + 50].forEach(x => {
-            this.svg.append('rect')
-                .attr('x', x - 10)
-                .attr('y', cityY - 20)
-                .attr('width', 20)
-                .attr('height', 80)
-                .attr('fill', '#2d1f1f')
-                .attr('stroke', this.colors.enemy)
-                .attr('stroke-width', 2);
-
-            // Tower top
-            this.svg.append('polygon')
-                .attr('points', `${x - 12},${cityY - 20} ${x},${cityY - 35} ${x + 12},${cityY - 20}`)
-                .attr('fill', this.colors.enemy);
-        });
-
-        // Enemy flag
-        this.svg.append('line')
-            .attr('x1', centerX)
-            .attr('y1', cityY - 10)
-            .attr('x2', centerX)
-            .attr('y2', cityY - 50)
-            .attr('stroke', '#8b949e')
-            .attr('stroke-width', 2);
-
-        this.svg.append('polygon')
-            .attr('points', `${centerX},${cityY - 50} ${centerX + 25},${cityY - 40} ${centerX},${cityY - 30}`)
-            .attr('fill', this.colors.enemy);
-
-        // City label
-        this.svg.append('text')
-            .attr('x', centerX)
-            .attr('y', cityY + 85)
-            .attr('text-anchor', 'middle')
-            .attr('fill', this.colors.enemy)
-            .attr('font-size', '12px')
-            .attr('font-weight', 'bold')
-            .text('ENEMY STRONGHOLD');
-
-        // Danger zone indicator
-        this.dangerZone = this.svg.append('ellipse')
-            .attr('cx', centerX)
-            .attr('cy', cityY + 20)
-            .attr('rx', 150)
-            .attr('ry', 80)
-            .attr('fill', 'none')
-            .attr('stroke', this.colors.enemy)
-            .attr('stroke-width', 1)
-            .attr('stroke-dasharray', '4,4')
-            .attr('opacity', 0.5);
-    }
-
-    drawArmies() {
-        // Alice's army (left side)
-        this.aliceGroup = this.svg.append('g')
-            .attr('class', 'alice-army');
-
-        this.drawArmy(this.aliceGroup, 100, 300, this.colors.alice, 'ALICE\'S ARMY', 'left');
-
-        // Bob's army (right side)
-        this.bobGroup = this.svg.append('g')
-            .attr('class', 'bob-army');
-
-        this.drawArmy(this.bobGroup, 700, 300, this.colors.bob, 'BOB\'S ARMY', 'right');
-
-        // Messenger layer
-        this.messengerLayer = this.svg.append('g')
-            .attr('class', 'messengers');
-    }
-
-    drawArmy(group, x, y, color, label, side) {
-        // Army tent/camp
-        group.append('polygon')
-            .attr('points', `${x - 30},${y + 20} ${x},${y - 20} ${x + 30},${y + 20}`)
-            .attr('fill', color)
-            .attr('opacity', 0.8);
-
-        // Soldiers (simplified icons)
-        const soldiers = side === 'left' ? [-20, 0, 20, -10, 10] : [-20, 0, 20, -10, 10];
-        soldiers.forEach((offset, i) => {
-            const sx = x + offset + (side === 'left' ? 50 : -50);
-            const sy = y + 15 + (i % 2) * 10;
-
-            // Soldier body
-            group.append('circle')
-                .attr('cx', sx)
-                .attr('cy', sy - 8)
-                .attr('r', 6)
-                .attr('fill', color);
-
-            group.append('rect')
-                .attr('x', sx - 4)
-                .attr('y', sy - 2)
-                .attr('width', 8)
-                .attr('height', 12)
-                .attr('fill', color)
-                .attr('rx', 2);
-        });
-
-        // Flag
-        group.append('line')
-            .attr('x1', x)
-            .attr('y1', y - 20)
-            .attr('x2', x)
-            .attr('y2', y - 60)
-            .attr('stroke', '#8b949e')
-            .attr('stroke-width', 2);
-
-        group.append('rect')
-            .attr('x', side === 'left' ? x : x - 25)
-            .attr('y', y - 60)
-            .attr('width', 25)
-            .attr('height', 15)
-            .attr('fill', color);
-
-        // Label
-        group.append('text')
-            .attr('x', x)
-            .attr('y', y + 50)
-            .attr('text-anchor', 'middle')
-            .attr('fill', color)
-            .attr('font-size', '11px')
-            .attr('font-weight', 'bold')
-            .text(label);
-
-        // Status indicator
-        group.append('text')
-            .attr('class', 'status')
-            .attr('x', x)
-            .attr('y', y + 65)
-            .attr('text-anchor', 'middle')
-            .attr('fill', this.colors.muted)
-            .attr('font-size', '10px')
-            .text('Awaiting coordination...');
-    }
-
-    drawUI() {
-        // Control panel
-        const panel = this.svg.append('g')
-            .attr('class', 'control-panel')
-            .attr('transform', 'translate(20, 20)');
-
-        panel.append('rect')
-            .attr('width', 200)
-            .attr('height', 80)
-            .attr('fill', '#161b22')
-            .attr('stroke', '#30363d')
-            .attr('stroke-width', 1)
-            .attr('rx', 8)
-            .attr('opacity', 0.9);
-
-        panel.append('text')
-            .attr('x', 10)
-            .attr('y', 25)
-            .attr('fill', this.colors.text)
-            .attr('font-size', '12px')
-            .attr('font-weight', 'bold')
-            .text('THE DILEMMA');
-
-        panel.append('text')
-            .attr('x', 10)
-            .attr('y', 45)
-            .attr('fill', this.colors.muted)
-            .attr('font-size', '10px')
-            .text('Messages attempted: ');
-
-        panel.append('text')
-            .attr('class', 'messages-count')
-            .attr('x', 120)
-            .attr('y', 45)
-            .attr('fill', this.colors.messenger)
-            .attr('font-size', '10px')
-            .attr('font-weight', 'bold')
-            .text('0');
-
-        panel.append('text')
-            .attr('x', 10)
-            .attr('y', 60)
-            .attr('fill', this.colors.muted)
-            .attr('font-size', '10px')
-            .text('Messages lost: ');
-
-        panel.append('text')
-            .attr('class', 'lost-count')
-            .attr('x', 90)
-            .attr('y', 60)
-            .attr('fill', this.colors.enemy)
-            .attr('font-size', '10px')
-            .attr('font-weight', 'bold')
-            .text('0');
-    }
-
-    drawNarrative() {
-        // Narrative text at bottom
-        this.narrative = this.svg.append('g')
-            .attr('class', 'narrative')
-            .attr('transform', `translate(${this.width / 2}, ${this.height - 40})`);
-
-        this.narrative.append('text')
-            .attr('class', 'narrative-text')
-            .attr('text-anchor', 'middle')
-            .attr('fill', this.colors.text)
-            .attr('font-size', '14px')
-            .text('Two armies must coordinate an attack. If only one attacks, they will be destroyed.');
-
-        this.narrative.append('text')
-            .attr('class', 'narrative-subtext')
-            .attr('y', 20)
-            .attr('text-anchor', 'middle')
-            .attr('fill', this.colors.muted)
-            .attr('font-size', '11px')
-            .text('But every messenger sent through enemy territory might be captured...');
-    }
-
-    sendMessenger(fromAlice = true, lossRate = 0.5) {
-        this.state.messagesAttempted++;
-        this.svg.select('.messages-count').text(this.state.messagesAttempted);
-
-        const startX = fromAlice ? 150 : 650;
-        const endX = fromAlice ? 650 : 150;
-        const startY = 310;
-        const endY = 310;
-
-        const id = this.messengerIdCounter++;
-        const isLost = Math.random() < lossRate;
-
-        // Create messenger
-        const messenger = this.messengerLayer.append('g')
-            .attr('class', `messenger messenger-${id}`)
-            .attr('transform', `translate(${startX}, ${startY})`);
-
-        // Messenger icon (running figure with envelope)
-        messenger.append('circle')
-            .attr('r', 8)
-            .attr('fill', this.colors.messenger);
-
-        messenger.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', 4)
-            .attr('fill', '#fff')
-            .attr('font-size', '10px')
-            .text(fromAlice ? '>' : '<');
-
-        // Message label
-        messenger.append('text')
-            .attr('y', -15)
-            .attr('text-anchor', 'middle')
-            .attr('fill', this.colors.messenger)
-            .attr('font-size', '9px')
-            .text(fromAlice ? 'MSG' : 'ACK');
-
-        // Track messenger
-        this.messengers.push({ id, messenger, startX, endX, progress: 0, isLost });
-
-        // Animate
-        const lossPoint = 0.3 + Math.random() * 0.4; // Random loss point in danger zone
-
-        const animate = () => {
-            const m = this.messengers.find(m => m.id === id);
-            if (!m) return;
-
-            m.progress += 0.01;
-            const x = m.startX + (m.endX - m.startX) * m.progress;
-            const y = startY + Math.sin(m.progress * Math.PI) * -30; // Arc path
-
-            m.messenger.attr('transform', `translate(${x}, ${y})`);
-
-            if (m.isLost && m.progress >= lossPoint) {
-                // Messenger captured!
-                this.state.messagesLost++;
-                this.svg.select('.lost-count').text(this.state.messagesLost);
-
-                m.messenger.transition()
-                    .duration(300)
-                    .attr('opacity', 0)
-                    .remove();
-
-                this.showCapture(x, y);
-                this.messengers = this.messengers.filter(msg => msg.id !== id);
-                return;
-            }
-
-            if (m.progress >= 1) {
-                // Delivered!
-                this.state.messagesDelivered++;
-
-                m.messenger.transition()
-                    .duration(200)
-                    .attr('transform', `translate(${m.endX}, ${endY}) scale(1.5)`)
-                    .attr('opacity', 0)
-                    .remove();
-
-                this.messengers = this.messengers.filter(msg => msg.id !== id);
-
-                // Show delivery effect
-                this.showDelivery(m.endX, endY);
-                return;
-            }
-
-            requestAnimationFrame(animate);
-        };
-
-        requestAnimationFrame(animate);
-    }
-
-    showCapture(x, y) {
-        // Capture effect
-        const effect = this.svg.append('g')
-            .attr('transform', `translate(${x}, ${y})`);
-
-        effect.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('fill', this.colors.enemy)
-            .attr('font-size', '12px')
-            .attr('font-weight', 'bold')
-            .text('CAPTURED!')
-            .transition()
-            .duration(1000)
-            .attr('y', -30)
-            .attr('opacity', 0)
-            .remove();
-
-        // X mark
-        effect.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', 5)
-            .attr('fill', this.colors.enemy)
-            .attr('font-size', '20px')
-            .text('X')
-            .transition()
-            .duration(500)
-            .attr('opacity', 0)
-            .remove();
-    }
-
-    showDelivery(x, y) {
-        const effect = this.svg.append('g')
-            .attr('transform', `translate(${x}, ${y})`);
-
-        effect.append('circle')
-            .attr('r', 5)
-            .attr('fill', 'none')
-            .attr('stroke', this.colors.alice)
-            .attr('stroke-width', 2)
-            .transition()
-            .duration(500)
-            .attr('r', 30)
-            .attr('opacity', 0)
-            .remove();
-    }
-
-    updateNarrative(text, subtext = '') {
-        this.narrative.select('.narrative-text')
-            .transition()
-            .duration(300)
-            .attr('opacity', 0)
-            .transition()
-            .duration(300)
-            .text(text)
-            .attr('opacity', 1);
-
-        if (subtext) {
-            this.narrative.select('.narrative-subtext')
-                .transition()
-                .duration(300)
-                .attr('opacity', 0)
-                .transition()
-                .duration(300)
-                .text(subtext)
-                .attr('opacity', 1);
-        }
-    }
-
-    startScenario(scenario = 'dilemma') {
-        this.state.scenario = scenario;
-
-        switch (scenario) {
-            case 'dilemma':
-                this.runDilemmaDemo();
-                break;
-            case 'alice_alone':
-                this.showAliceAttacksAlone();
-                break;
-            case 'both_attack':
-                this.showBothAttack();
-                break;
-        }
-    }
-
-    runDilemmaDemo() {
-        // Continuous messenger sending to show the problem
-        let iteration = 0;
-        const run = () => {
-            if (!this.isAnimating) return;
-
-            iteration++;
-
-            // Alternate between Alice and Bob sending
-            const fromAlice = iteration % 2 === 1;
-            this.sendMessenger(fromAlice, 0.6);
-
-            // Update narrative based on state
-            if (this.state.messagesAttempted > 0 && this.state.messagesDelivered === 0) {
-                this.updateNarrative(
-                    'No messages are getting through! How can they coordinate?',
-                    'Without reliable communication, coordination seems impossible...'
-                );
-            } else if (this.state.messagesDelivered > 0 && this.state.messagesDelivered < 3) {
-                this.updateNarrative(
-                    'A message arrived! But does the sender know it arrived?',
-                    'The sender can\'t be sure unless they receive confirmation...'
-                );
-            }
-
-            setTimeout(run, 1500);
-        };
-
-        this.isAnimating = true;
-        run();
-    }
-
-    showAliceAttacksAlone() {
-        this.updateNarrative(
-            'Alice attacks alone - DISASTER!',
-            'Without Bob\'s army, Alice\'s forces are overwhelmed and destroyed.'
-        );
-
-        this.aliceGroup.select('.status').text('ATTACKING!');
-        this.bobGroup.select('.status').text('Waiting... (no message received)');
-
-        // Visual effect showing defeat
-        setTimeout(() => {
-            this.aliceGroup.transition()
-                .duration(1000)
-                .attr('opacity', 0.3);
-        }, 1000);
-    }
-
-    showBothAttack() {
-        this.updateNarrative(
-            'Both armies attack together - VICTORY!',
-            'Coordinated attack overwhelms the enemy stronghold.'
-        );
-
-        this.aliceGroup.select('.status').text('ATTACKING!');
-        this.bobGroup.select('.status').text('ATTACKING!');
-
-        // Victory effect
-        setTimeout(() => {
-            this.svg.select('.enemy-city').transition()
-                .duration(1000)
-                .attr('opacity', 0.3);
-        }, 1000);
-    }
-
-    stop() {
-        this.isAnimating = false;
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-        }
-    }
-
-    reset() {
-        this.stop();
-        this.state = {
-            aliceDecision: 'waiting',
-            bobDecision: 'waiting',
-            messagesAttempted: 0,
-            messagesLost: 0,
-            messagesDelivered: 0,
-            scenario: 'dilemma'
-        };
-        this.messengers = [];
-        this.messengerIdCounter = 0;
-        this.init();
-    }
-}
 
 // =============================================================================
 // Section 2: Infinite Regress Visualization
@@ -1014,8 +401,8 @@ export class ExplainerController {
         const regressContainer = document.getElementById('infinite-regress');
 
         if (battlefieldContainer) {
-            this.battlefield = new BattlefieldScene(battlefieldContainer);
-            this.battlefield.init();
+            this.battlefield = new Battlefield3D(battlefieldContainer);
+            // Battlefield3D calls init() in constructor
             this.sections.push(this.battlefield);
         }
 
@@ -1619,11 +1006,13 @@ export class PhaseWalkthrough {
      * - Auto-play mode
      * - Visual representation of epistemic depth
      * - Bilateral construction property highlight
+     * - Detailed phase transition explanations
+     * - Visual proof embedding diagram
      */
     constructor(container) {
         this.container = d3.select(container);
-        this.width = 800;
-        this.height = 550;
+        this.width = 900;
+        this.height = 700;
         this.svg = null;
         this.currentPhase = 0;
         this.isPlaying = false;
@@ -1639,7 +1028,8 @@ export class PhaseWalkthrough {
             text: '#f0f6fc',
             muted: '#8b949e',
             bg: '#0d1117',
-            highlight: '#f0883e'
+            highlight: '#f0883e',
+            embedding: '#a371f7'
         };
 
         this.phases = [
@@ -1651,7 +1041,11 @@ export class PhaseWalkthrough {
                 aliceThinks: 'I want to coordinate.',
                 bobThinks: 'I want to coordinate.',
                 status: 'Unilateral intent only',
-                action: 'Each floods C continuously'
+                action: 'Each floods C continuously',
+                explanation: 'Each party generates a signed commitment and begins flooding it. At this stage, there is no knowledge of the other party.',
+                transition: 'Upon receiving C_Y, each party advances to Phase 2',
+                embeds: [],
+                bilateralProperty: false
             },
             {
                 id: 'D',
@@ -1661,7 +1055,11 @@ export class PhaseWalkthrough {
                 aliceThinks: 'I know Bob committed.',
                 bobThinks: 'I know Alice committed.',
                 status: 'Mutual commitment confirmed',
-                action: 'Each floods D after receiving other\'s C'
+                action: 'Each floods D after receiving other\'s C',
+                explanation: 'Upon receiving the other party\'s commitment, each party constructs D by signing BOTH commitments together. This creates first-order knowledge: "I know you committed."',
+                transition: 'Upon receiving D_Y, each party advances to Phase 3',
+                embeds: ['C_A', 'C_B'],
+                bilateralProperty: false
             },
             {
                 id: 'T',
@@ -1671,7 +1069,11 @@ export class PhaseWalkthrough {
                 aliceThinks: 'I know Bob knows I committed.',
                 bobThinks: 'I know Alice knows I committed.',
                 status: 'Second-order knowledge',
-                action: 'Each floods T after receiving other\'s D'
+                action: 'Each floods T after receiving other\'s D',
+                explanation: 'Upon receiving the other party\'s double proof, each party constructs T by signing BOTH double proofs together. Critically: receiving D_Y gives you the embedded commitments for FREE. This creates second-order knowledge.',
+                transition: 'Upon receiving T_Y, each party advances to Phase 4',
+                embeds: ['D_A', 'D_B', 'C_A', 'C_B'],
+                bilateralProperty: false
             },
             {
                 id: 'Q',
@@ -1682,6 +1084,10 @@ export class PhaseWalkthrough {
                 bobThinks: 'I know that Alice knows that I know that Alice knows... ∞',
                 status: 'EPISTEMIC FIXPOINT',
                 action: 'ATTACK!',
+                explanation: 'This is the bilateral construction property: Q_A exists → contains T_B → Bob had D_A → Bob can construct T_B → Bob can construct Q_B. Neither half can exist without the other being constructible. The knot is tied.',
+                transition: 'Common knowledge achieved. Coordination guaranteed.',
+                embeds: ['T_A', 'T_B', 'D_A', 'D_B', 'C_A', 'C_B'],
+                bilateralProperty: true,
                 isFixpoint: true
             }
         ];
@@ -1915,59 +1321,240 @@ export class PhaseWalkthrough {
 
         // Formula box
         this.phaseContent.append('rect')
-            .attr('x', 100)
-            .attr('y', 50)
-            .attr('width', 600)
-            .attr('height', 40)
+            .attr('x', 50)
+            .attr('y', 55)
+            .attr('width', 800)
+            .attr('height', 45)
             .attr('fill', '#161b22')
             .attr('stroke', color)
-            .attr('stroke-width', 1)
+            .attr('stroke-width', 2)
             .attr('rx', 6);
 
         this.phaseContent.append('text')
             .attr('x', this.width / 2)
-            .attr('y', 75)
+            .attr('y', 83)
             .attr('text-anchor', 'middle')
             .attr('fill', this.colors.text)
-            .attr('font-size', '12px')
+            .attr('font-size', '13px')
             .attr('font-family', "'JetBrains Mono', monospace")
             .text(phase.formula);
 
         // Two columns: Alice and Bob
-        this.drawPartyColumn(150, phase, 'alice', this.colors.alice);
-        this.drawPartyColumn(650, phase, 'bob', this.colors.bob);
+        this.drawPartyColumn(170, phase, 'alice', this.colors.alice);
+        this.drawPartyColumn(730, phase, 'bob', this.colors.bob);
 
-        // Status and action
+        // Explanation section
+        this.drawExplanationSection(phase, color);
+
+        // Visual proof embedding diagram
+        if (phase.embeds.length > 0) {
+            this.drawProofEmbedding(phase, color);
+        }
+
+        // Transition explanation
         this.phaseContent.append('text')
             .attr('x', this.width / 2)
-            .attr('y', 260)
-            .attr('text-anchor', 'middle')
-            .attr('fill', phase.isFixpoint ? this.colors.highlight : this.colors.muted)
-            .attr('font-size', '14px')
-            .attr('font-weight', phase.isFixpoint ? 'bold' : 'normal')
-            .text(phase.status);
-
-        this.phaseContent.append('text')
-            .attr('x', this.width / 2)
-            .attr('y', 285)
-            .attr('text-anchor', 'middle')
-            .attr('fill', phase.isFixpoint ? this.colors.phase4 : this.colors.text)
-            .attr('font-size', '12px')
-            .text(`Action: ${phase.action}`);
-
-        // Epistemic depth indicator
-        this.phaseContent.append('text')
-            .attr('x', this.width / 2)
-            .attr('y', 310)
+            .attr('y', 500)
             .attr('text-anchor', 'middle')
             .attr('fill', this.colors.muted)
             .attr('font-size', '11px')
-            .text(`Epistemic Depth: ${phase.epistemicDepth}`);
+            .attr('font-style', 'italic')
+            .text(`→ ${phase.transition}`);
 
         // Show bilateral property on phase 4
         this.bilateralBox.transition()
             .duration(500)
-            .attr('opacity', phase.isFixpoint ? 1 : 0);
+            .attr('opacity', phase.bilateralProperty ? 1 : 0);
+    }
+
+    drawExplanationSection(phase, color) {
+        // Explanation box
+        const explainY = 270;
+        const boxHeight = 70;
+
+        this.phaseContent.append('rect')
+            .attr('x', 50)
+            .attr('y', explainY)
+            .attr('width', 800)
+            .attr('height', boxHeight)
+            .attr('fill', color)
+            .attr('fill-opacity', 0.05)
+            .attr('stroke', color)
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', 0.3)
+            .attr('rx', 6);
+
+        // Explanation title
+        this.phaseContent.append('text')
+            .attr('x', 65)
+            .attr('y', explainY + 20)
+            .attr('fill', color)
+            .attr('font-size', '12px')
+            .attr('font-weight', 'bold')
+            .text('What happens:');
+
+        // Explanation text (word-wrapped)
+        this.wrapText(
+            phase.explanation,
+            65,
+            explainY + 40,
+            770,
+            this.colors.text,
+            11
+        );
+
+        // Status and action boxes
+        const statusY = explainY + boxHeight + 15;
+
+        this.phaseContent.append('rect')
+            .attr('x', 50)
+            .attr('y', statusY)
+            .attr('width', 390)
+            .attr('height', 35)
+            .attr('fill', '#161b22')
+            .attr('stroke', this.colors.muted)
+            .attr('stroke-width', 1)
+            .attr('rx', 4);
+
+        this.phaseContent.append('text')
+            .attr('x', 245)
+            .attr('y', statusY + 12)
+            .attr('text-anchor', 'middle')
+            .attr('fill', this.colors.muted)
+            .attr('font-size', '9px')
+            .text('STATUS');
+
+        this.phaseContent.append('text')
+            .attr('x', 245)
+            .attr('y', statusY + 26)
+            .attr('text-anchor', 'middle')
+            .attr('fill', phase.isFixpoint ? this.colors.highlight : this.colors.text)
+            .attr('font-size', '12px')
+            .attr('font-weight', phase.isFixpoint ? 'bold' : 'normal')
+            .text(phase.status);
+
+        this.phaseContent.append('rect')
+            .attr('x', 460)
+            .attr('y', statusY)
+            .attr('width', 390)
+            .attr('height', 35)
+            .attr('fill', '#161b22')
+            .attr('stroke', this.colors.muted)
+            .attr('stroke-width', 1)
+            .attr('rx', 4);
+
+        this.phaseContent.append('text')
+            .attr('x', 655)
+            .attr('y', statusY + 12)
+            .attr('text-anchor', 'middle')
+            .attr('fill', this.colors.muted)
+            .attr('font-size', '9px')
+            .text('ACTION');
+
+        this.phaseContent.append('text')
+            .attr('x', 655)
+            .attr('y', statusY + 26)
+            .attr('text-anchor', 'middle')
+            .attr('fill', phase.isFixpoint ? this.colors.phase4 : this.colors.text)
+            .attr('font-size', '12px')
+            .text(phase.action);
+
+        // Epistemic depth
+        this.phaseContent.append('text')
+            .attr('x', this.width / 2)
+            .attr('y', statusY + 55)
+            .attr('text-anchor', 'middle')
+            .attr('fill', this.colors.embedding)
+            .attr('font-size', '11px')
+            .attr('font-weight', 'bold')
+            .text(`Epistemic Depth: ${phase.epistemicDepth}${phase.isFixpoint ? ' (FIXPOINT)' : ''}`);
+    }
+
+    drawProofEmbedding(phase, color) {
+        // Visual diagram showing what's embedded in this proof
+        const embedY = 420;
+
+        this.phaseContent.append('text')
+            .attr('x', this.width / 2)
+            .attr('y', embedY)
+            .attr('text-anchor', 'middle')
+            .attr('fill', this.colors.embedding)
+            .attr('font-size', '11px')
+            .attr('font-weight', 'bold')
+            .text(`${phase.id} contains:`);
+
+        // Draw embedded proofs as nested boxes
+        const startX = this.width / 2 - (phase.embeds.length * 60) / 2;
+
+        phase.embeds.forEach((embed, i) => {
+            const x = startX + i * 60;
+            const y = embedY + 15;
+
+            this.phaseContent.append('rect')
+                .attr('x', x)
+                .attr('y', y)
+                .attr('width', 50)
+                .attr('height', 30)
+                .attr('fill', this.colors.embedding)
+                .attr('fill-opacity', 0.1)
+                .attr('stroke', this.colors.embedding)
+                .attr('stroke-width', 1)
+                .attr('rx', 4);
+
+            this.phaseContent.append('text')
+                .attr('x', x + 25)
+                .attr('y', y + 19)
+                .attr('text-anchor', 'middle')
+                .attr('fill', this.colors.embedding)
+                .attr('font-size', '10px')
+                .attr('font-family', "'JetBrains Mono', monospace")
+                .text(embed);
+        });
+
+        // Arrow showing embedding
+        if (phase.embeds.length > 0) {
+            this.phaseContent.append('text')
+                .attr('x', this.width / 2)
+                .attr('y', embedY + 63)
+                .attr('text-anchor', 'middle')
+                .attr('fill', this.colors.muted)
+                .attr('font-size', '10px')
+                .attr('font-style', 'italic')
+                .text('Receiving higher-level proof gives you all nested proofs for FREE');
+        }
+    }
+
+    wrapText(text, x, y, maxWidth, fill, fontSize) {
+        const words = text.split(' ');
+        let line = '';
+        let lineNum = 0;
+        const lineHeight = fontSize * 1.4;
+
+        words.forEach(word => {
+            const testLine = line + word + ' ';
+            const testWidth = testLine.length * fontSize * 0.5; // Rough estimate
+
+            if (testWidth > maxWidth && line !== '') {
+                this.phaseContent.append('text')
+                    .attr('x', x)
+                    .attr('y', y + lineNum * lineHeight)
+                    .attr('fill', fill)
+                    .attr('font-size', `${fontSize}px`)
+                    .text(line.trim());
+                line = word + ' ';
+                lineNum++;
+            } else {
+                line = testLine;
+            }
+        });
+
+        // Last line
+        this.phaseContent.append('text')
+            .attr('x', x)
+            .attr('y', y + lineNum * lineHeight)
+            .attr('fill', fill)
+            .attr('font-size', `${fontSize}px`)
+            .text(line.trim());
     }
 
     drawPartyColumn(x, phase, party, color) {

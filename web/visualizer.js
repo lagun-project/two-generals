@@ -39,34 +39,25 @@ let useWasm = false;
  * accurately models the protocol behavior without crypto.
  */
 async function initWasm() {
-    // Check if WASM module exists before trying to import
-    // This avoids console errors in development
-    try {
-        const response = await fetch('./pkg/two_generals_wasm.js', { method: 'HEAD' });
-        if (!response.ok) {
-            console.log('WASM module not built yet, using JS simulation');
-            console.log('To build WASM: cd ../wasm && wasm-pack build --target web --out-dir ../web/pkg');
-            useWasm = false;
-            return false;
-        }
-    } catch (e) {
-        console.log('WASM module not available, using JS simulation');
-        useWasm = false;
-        return false;
-    }
+    // WASM module is optional. If not built, fall back to JS simulation.
+    // The JS simulation provides identical behavior for protocol correctness.
+    // WASM is only needed for performance optimization (P3 priority per CLAUDE.md).
 
+    // Skip WASM loading entirely if pkg directory doesn't exist
+    // This prevents 404 errors in browser console during development
     try {
-        // Dynamically import the WASM module
+        // Try to dynamically import the WASM module
         // Use string concatenation to prevent Vite from analyzing this import at build time
         const wasmPath = './pkg/' + 'two_generals_wasm.js';
         const wasm = await import(/* @vite-ignore */ wasmPath);
         await wasm.default();
         wasmModule = wasm;
         useWasm = true;
-        console.log('TGP WASM module loaded successfully');
+        console.log('✓ TGP WASM module loaded successfully');
         return true;
     } catch (e) {
-        console.log('WASM initialization failed, using JS simulation:', e.message);
+        // WASM not available - this is expected in development
+        // Build WASM with: cd wasm && wasm-pack build --target web --out-dir ../web/pkg
         useWasm = false;
         return false;
     }

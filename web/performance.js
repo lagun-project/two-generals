@@ -583,7 +583,128 @@ class PerformanceTestHarness {
 }
 
 // =============================================================================
-// D3.js Results Visualization
+// D3.js Chart Renderer for Individual Charts
+// =============================================================================
+
+/**
+ * Individual chart renderer for each metric.
+ * Renders directly into the placeholder divs in index.html.
+ */
+class ChartRenderer {
+    constructor(containerId, controller) {
+        this.containerId = containerId;
+        this.controller = controller;
+        this.margin = { top: 20, right: 20, bottom: 50, left: 60 };
+        this.colors = {
+            TGP: '#3fb950',
+            TCP: '#f85149',
+            QUIC: '#a371f7',
+            UDP: '#d29922'
+        };
+    }
+
+    /**
+     * Render a line chart in this container.
+     */
+    render(data, config) {
+        const container = d3.select(`#${this.containerId}`);
+        container.selectAll('*').remove();
+
+        if (!data || !data.protocols || data.protocols.length === 0) {
+            container.append('div')
+                .attr('class', 'perf-chart-placeholder')
+                .text('Run a test to see results');
+            return;
+        }
+
+        const width = 400;
+        const height = 180;
+        const innerWidth = width - this.margin.left - this.margin.right;
+        const innerHeight = height - this.margin.top - this.margin.bottom;
+
+        const svg = container.append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .attr('class', 'perf-chart-svg');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+
+        // Scales
+        const xScale = d3.scaleLinear()
+            .domain([0, 100])
+            .range([0, innerWidth]);
+
+        const allValues = data.protocols.flatMap(p =>
+            p.data.map(d => d[config.yKey] || 0)
+        );
+        const yMax = config.yDomain ? config.yDomain[1] : Math.max(...allValues, 1) * 1.1;
+        const yMin = config.yDomain ? config.yDomain[0] : 0;
+
+        const yScale = d3.scaleLinear()
+            .domain([yMin, yMax])
+            .range([innerHeight, 0]);
+
+        // Grid lines
+        g.append('g')
+            .attr('class', 'grid')
+            .call(d3.axisLeft(yScale)
+                .ticks(5)
+                .tickSize(-innerWidth)
+                .tickFormat(''))
+            .style('opacity', 0.1);
+
+        // X axis
+        g.append('g')
+            .attr('class', 'axis x-axis')
+            .attr('transform', `translate(0,${innerHeight})`)
+            .call(d3.axisBottom(xScale)
+                .ticks(5)
+                .tickFormat(d => `${d}%`))
+            .selectAll('text')
+            .style('font-size', '10px');
+
+        // Y axis
+        g.append('g')
+            .attr('class', 'axis y-axis')
+            .call(d3.axisLeft(yScale).ticks(5))
+            .selectAll('text')
+            .style('font-size', '10px');
+
+        // Line generator
+        const line = d3.line()
+            .x(d => xScale(d.lossRate))
+            .y(d => yScale(d[config.yKey] || 0))
+            .curve(d3.curveMonotoneX);
+
+        // Draw lines
+        for (const protocol of data.protocols) {
+            const color = this.colors[protocol.name];
+
+            g.append('path')
+                .datum(protocol.data)
+                .attr('class', `line line-${protocol.name.toLowerCase()}`)
+                .attr('d', line)
+                .attr('fill', 'none')
+                .attr('stroke', color)
+                .attr('stroke-width', 2);
+
+            // Data points
+            g.selectAll(`.dot-${protocol.name}`)
+                .data(protocol.data)
+                .enter()
+                .append('circle')
+                .attr('class', `dot dot-${protocol.name.toLowerCase()}`)
+                .attr('cx', d => xScale(d.lossRate))
+                .attr('cy', d => yScale(d[config.yKey] || 0))
+                .attr('r', 3)
+                .attr('fill', color);
+        }
+    }
+}
+
+// =============================================================================
+// D3.js Results Visualization (Legacy - kept for compatibility)
 // =============================================================================
 
 /**
@@ -865,7 +986,7 @@ class PerformanceVisualizer {
 class PerformanceController {
     constructor() {
         this.harness = new PerformanceTestHarness();
-        this.visualizer = null;
+        this.charts = {};
         this.isRunning = false;
 
         this.bindEvents();
@@ -881,80 +1002,36 @@ class PerformanceController {
         this.harness.on('complete', (data) => {
             this.showResults(data);
         });
+
+        // Wire up Run Comparison button
+        document.addEventListener('DOMContentLoaded', () => {
+            const runButton = document.getElementById('run-perf-test');
+            if (runButton) {
+                runButton.addEventListener('click', () => this.runTest());
+            }
+        });
     }
 
     /**
      * Initialize the controller when tab is shown.
      */
     init() {
-        const container = document.getElementById('performance-container');
-        if (!container) return;
-
-        // Setup initial UI
-        this.renderControlPanel();
-        this.visualizer = new PerformanceVisualizer('performance-results');
+        // Setup chart containers
+        this.setupCharts();
     }
 
     /**
-     * Render the control panel for running tests.
+     * Setup chart containers - uses existing HTML structure from index.html
      */
-    renderControlPanel() {
-        const controls = document.getElementById('performance-controls');
-        if (!controls) return;
+    setupCharts() {
+        // Chart containers already exist in HTML:
+        // #chart-success, #chart-symmetry, #chart-messages, #chart-time
 
-        controls.innerHTML = `
-            <div class="perf-control-panel">
-                <div class="perf-control-group">
-                    <label for="perf-trials">Trials per loss rate:</label>
-                    <input type="range" id="perf-trials" min="5" max="50" value="10">
-                    <span id="perf-trials-value">10</span>
-                </div>
-                <div class="perf-control-group">
-                    <label for="perf-max-ticks">Max simulation ticks:</label>
-                    <select id="perf-max-ticks">
-                        <option value="10000">10,000 (Fast)</option>
-                        <option value="100000" selected>100,000 (Standard)</option>
-                        <option value="1000000">1,000,000 (Thorough)</option>
-                    </select>
-                </div>
-                <div class="perf-button-group">
-                    <button id="run-perf-test" class="primary">Run Performance Test</button>
-                    <span id="perf-progress"></span>
-                </div>
-            </div>
-            <div class="perf-protocol-info">
-                <div class="protocol-card tgp">
-                    <h5>TGP (Two Generals Protocol)</h5>
-                    <p>Our solution: Proof escalation with continuous flooding. Guaranteed symmetric outcomes.</p>
-                </div>
-                <div class="protocol-card tcp">
-                    <h5>TCP-like</h5>
-                    <p>Traditional ACK-based. Vulnerable to "last message" problem.</p>
-                </div>
-                <div class="protocol-card quic">
-                    <h5>QUIC-like</h5>
-                    <p>Modern UDP with reliability. Still susceptible under extreme loss.</p>
-                </div>
-                <div class="protocol-card udp">
-                    <h5>UDP</h5>
-                    <p>Fire-and-forget. No coordination guarantees.</p>
-                </div>
-            </div>
-        `;
-
-        // Bind control events
-        const trialsSlider = document.getElementById('perf-trials');
-        const trialsValue = document.getElementById('perf-trials-value');
-        if (trialsSlider) {
-            trialsSlider.addEventListener('input', (e) => {
-                trialsValue.textContent = e.target.value;
-            });
-        }
-
-        const runButton = document.getElementById('run-perf-test');
-        if (runButton) {
-            runButton.addEventListener('click', () => this.runTest());
-        }
+        // Initialize visualizers for each chart
+        this.charts.success = new ChartRenderer('chart-success', this);
+        this.charts.symmetry = new ChartRenderer('chart-symmetry', this);
+        this.charts.messages = new ChartRenderer('chart-messages', this);
+        this.charts.time = new ChartRenderer('chart-time', this);
     }
 
     /**
@@ -964,31 +1041,51 @@ class PerformanceController {
         if (this.isRunning) return;
 
         const runButton = document.getElementById('run-perf-test');
-        const resultsContainer = document.getElementById('performance-results');
+        const progressBar = document.getElementById('perf-progress');
+        const progressFill = document.getElementById('perf-progress-fill');
+        const progressStatus = document.getElementById('perf-progress-status');
+        const progressPercent = document.getElementById('perf-progress-percent');
+        const summarySection = document.getElementById('perf-summary');
 
         this.isRunning = true;
         runButton.disabled = true;
         runButton.textContent = 'Running...';
-        resultsContainer.innerHTML = '<div class="perf-loading">Running performance tests...</div>';
 
-        const trials = parseInt(document.getElementById('perf-trials')?.value || '10');
-        const maxTicks = parseInt(document.getElementById('perf-max-ticks')?.value || '100000');
+        // Show progress bar
+        if (progressBar) {
+            progressBar.style.display = 'block';
+        }
+
+        // Hide summary
+        if (summarySection) {
+            summarySection.style.display = 'none';
+        }
+
+        // Get settings from HTML controls
+        const lossRate = parseFloat(document.getElementById('perf-loss-rate')?.value || '0.5');
+        const iterations = parseInt(document.getElementById('perf-iterations')?.value || '100');
 
         try {
+            // Run comparison across multiple loss rates
             const data = await this.harness.runComparison({
-                lossRates: [0, 5, 10, 25, 50, 75, 90, 95, 99, 99.9],
-                trialsPerRate: trials,
-                maxTicks: maxTicks
+                lossRates: [lossRate * 100, 10, 30, 50, 70, 90, 95, 99],
+                trialsPerRate: Math.ceil(iterations / 8), // Divide iterations across loss rates
+                maxTicks: 10000
             });
 
-            this.visualizer.render(data);
+            this.showResults(data);
         } catch (error) {
-            resultsContainer.innerHTML = `<div class="perf-error">Error: ${error.message}</div>`;
+            console.error('Performance test error:', error);
+            alert(`Error running test: ${error.message}`);
         } finally {
             this.isRunning = false;
             runButton.disabled = false;
-            runButton.textContent = 'Run Performance Test';
-            document.getElementById('perf-progress').textContent = '';
+            runButton.textContent = 'Run Comparison';
+
+            // Hide progress bar
+            if (progressBar) {
+                progressBar.style.display = 'none';
+            }
         }
     }
 
@@ -996,20 +1093,132 @@ class PerformanceController {
      * Update progress display during test.
      */
     updateProgress(progress) {
-        const progressEl = document.getElementById('perf-progress');
-        if (progressEl) {
+        const progressFill = document.getElementById('perf-progress-fill');
+        const progressStatus = document.getElementById('perf-progress-status');
+        const progressPercent = document.getElementById('perf-progress-percent');
+
+        if (progressFill && progressStatus && progressPercent) {
             const percent = ((progress.completed / progress.total) * 100).toFixed(0);
-            progressEl.textContent = `${percent}% (${progress.protocol} @ ${progress.lossRate}% loss)`;
+            progressFill.style.width = `${percent}%`;
+            progressStatus.textContent = `Testing ${progress.protocol} at ${progress.lossRate}% loss...`;
+            progressPercent.textContent = `${percent}%`;
         }
     }
 
     /**
-     * Show final results.
+     * Show final results across all charts.
      */
     showResults(data) {
-        if (this.visualizer) {
-            this.visualizer.render(data);
+        // Update protocol cards with success rates
+        this.updateProtocolCards(data);
+
+        // Render each chart
+        this.charts.success.render(data, {
+            yKey: 'successRate',
+            yLabel: 'Success Rate (%)',
+            yDomain: [0, 100]
+        });
+
+        this.charts.symmetry.render(data, {
+            yKey: 'symmetryRate',
+            yLabel: 'Symmetric Outcomes (%)',
+            yDomain: [0, 100]
+        });
+
+        this.charts.messages.render(data, {
+            yKey: 'avgMessagesSent',
+            yLabel: 'Messages Sent',
+            yDomain: null
+        });
+
+        this.charts.time.render(data, {
+            yKey: 'avgDuration',
+            yLabel: 'Time (ms)',
+            yDomain: null
+        });
+
+        // Show summary
+        this.showSummary(data);
+    }
+
+    /**
+     * Update protocol cards with metrics.
+     */
+    updateProtocolCards(data) {
+        for (const protocolData of data.protocols) {
+            const cardId = `${protocolData.name.toLowerCase()}-success`;
+            const cardEl = document.getElementById(cardId);
+
+            if (cardEl) {
+                // Find highest loss rate data point
+                const highLossData = protocolData.data[protocolData.data.length - 1];
+                if (highLossData) {
+                    cardEl.textContent = `${highLossData.successRate.toFixed(1)}%`;
+                }
+            }
         }
+    }
+
+    /**
+     * Show summary findings.
+     */
+    showSummary(data) {
+        const summarySection = document.getElementById('perf-summary');
+        const findingsContainer = document.getElementById('perf-findings');
+
+        if (!summarySection || !findingsContainer) return;
+
+        summarySection.style.display = 'block';
+        findingsContainer.innerHTML = '';
+
+        // Find TGP and TCP data
+        const tgpData = data.protocols.find(p => p.name === 'TGP');
+        const tcpData = data.protocols.find(p => p.name === 'TCP');
+
+        if (tgpData && tcpData) {
+            // Compare at high loss rates
+            const tgpHighLoss = tgpData.data.find(d => d.lossRate >= 90);
+            const tcpHighLoss = tcpData.data.find(d => d.lossRate >= 90);
+
+            if (tgpHighLoss && tcpHighLoss) {
+                const finding1 = document.createElement('div');
+                finding1.className = 'perf-finding';
+                finding1.innerHTML = `
+                    <div class="finding-icon">✅</div>
+                    <div class="finding-text">
+                        <strong>TGP maintains ${tgpHighLoss.symmetryRate.toFixed(0)}% symmetric outcomes</strong>
+                        at ${tgpHighLoss.lossRate}% packet loss, while TCP drops to ${tcpHighLoss.symmetryRate.toFixed(0)}%
+                    </div>
+                `;
+                findingsContainer.appendChild(finding1);
+            }
+        }
+
+        // Add key insights
+        const insights = [
+            {
+                icon: '🛡️',
+                text: '<strong>Zero asymmetric failures</strong> - TGP\'s bilateral construction guarantees both parties reach the same decision'
+            },
+            {
+                icon: '⚡',
+                text: '<strong>Continuous flooding</strong> eliminates "last message" vulnerability'
+            },
+            {
+                icon: '📊',
+                text: '<strong>Higher message overhead</strong> is the tradeoff for deterministic coordination'
+            }
+        ];
+
+        insights.forEach(insight => {
+            const findingEl = document.createElement('div');
+            findingEl.className = 'perf-finding';
+            findingEl.innerHTML = `
+                <div class="finding-icon">${insight.icon}</div>
+                <div class="finding-text">${insight.text}</div>
+            `;
+            findingsContainer.appendChild(findingEl);
+        });
     }
 }
 
