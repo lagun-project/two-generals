@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab 2 Integration Test - Performance Comparison</title>
+    <style>
+        body { font-family: monospace; background: #0d1117; color: #f0f6fc; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; background: #161b22; border-left: 3px solid #3fb950; }
+        .test-result.fail { border-left-color: #f85149; }
+        h1 { color: #58a6ff; }
+        pre { background: #161b22; padding: 10px; overflow-x: auto; }
+        .image-loading-container { margin: 20px 0; padding: 20px; background: #161b22; }
+    </style>
+</head>
+<body>
+    <h1>Tab 2 Performance Comparison - Integration Test</h1>
+
+    <div id="test-results"></div>
+
+    <div class="image-loading-container">
+        <h2>Image Loading Test Container</h2>
+        <div id="image-loading-test-container"></div>
+    </div>
+
+    <script type="module">
+        // Test results container
+        const resultsDiv = document.getElementById('test-results');
+
+        function logResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${passed ? '✓' : '✗'} ${name}</strong>
+                ${details ? `<pre>${details}</pre>` : ''}
+            `;
+            resultsDiv.appendChild(div);
+        }
+
+        // Test 1: Verify D3 is available
+        try {
+            const d3Module = await import('d3');
+            const d3 = d3Module.default || d3Module;
+            logResult('D3 library loaded', true, `D3 version available`);
+            window.d3 = d3;
+        } catch (error) {
+            logResult('D3 library loaded', false, error.message);
+        }
+
+        // Test 2: Verify performance.js exports are available
+        try {
+            const perfModule = await import('./performance.js');
+            const {
+                PerformanceTestHarness,
+                PerformanceVisualizer,
+                TGPSimulator,
+                TCPSimulator
+            } = perfModule;
+
+            logResult('Performance module exports', true,
+                `Exports: PerformanceTestHarness, PerformanceVisualizer, TGPSimulator, TCPSimulator`);
+
+            // Test 3: Create a simple simulation
+            const sim = new TGPSimulator(0.5);
+            const result = sim.run(1000);
+            logResult('TGP Simulator execution', result.completed,
+                `Messages sent: ${result.messagesSent}, Success: ${result.success}`);
+
+            // Test 4: Create visualizer
+            const viz = new PerformanceVisualizer('image-loading-test-container');
+            logResult('Performance Visualizer created', true, 'Visualizer instantiated successfully');
+
+            // Test 5: Run a small performance test
+            const harness = new PerformanceTestHarness();
+            harness.on('progress', (progress) => {
+                console.log(`Progress: ${progress.completed}/${progress.total}`);
+            });
+
+            const testData = await harness.runComparison({
+                lossRates: [0, 50, 90],
+                trialsPerRate: 2,
+                maxTicks: 10000,
+                protocols: ['TGP', 'TCP']
+            });
+
+            logResult('Small performance test completed', true,
+                `Tested ${testData.protocols.length} protocols at ${testData.lossRates.length} loss rates`);
+
+            // Test 6: Render results
+            viz.render(testData);
+            logResult('D3 chart rendering', true, 'Charts rendered to DOM');
+
+            // Test 7: Verify SVG elements were created
+            const svgs = document.querySelectorAll('#image-loading-test-container svg');
+            logResult('SVG elements created', svgs.length >= 1,
+                `Found ${svgs.length} SVG element(s)`);
+
+            // Test 8: Verify chart has data
+            const lines = document.querySelectorAll('#image-loading-test-container .line');
+            logResult('Chart lines rendered', lines.length >= 2,
+                `Found ${lines.length} line element(s)`);
+
+        } catch (error) {
+            logResult('Performance module tests', false, error.stack);
+        }
+
+        // Test 9: ServiceWorker support
+        if ('serviceWorker' in navigator) {
+            logResult('ServiceWorker support', true, 'Browser supports ServiceWorker');
+        } else {
+            logResult('ServiceWorker support', false, 'ServiceWorker not supported');
+        }
+
+        // Summary
+        setTimeout(() => {
+            const results = document.querySelectorAll('.test-result');
+            const passed = document.querySelectorAll('.test-result.pass').length;
+            const total = results.length;
+
+            const summary = document.createElement('div');
+            summary.style.cssText = 'margin-top: 30px; padding: 20px; background: #161b22; border: 2px solid #3fb950;';
+            summary.innerHTML = `
+                <h2>Test Summary</h2>
+                <p>Passed: ${passed}/${total} (${((passed/total)*100).toFixed(1)}%)</p>
+                <p>Status: ${passed === total ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED'}</p>
+            `;
+            if (passed !== total) {
+                summary.style.borderColor = '#f85149';
+            }
+            resultsDiv.appendChild(summary);
+        }, 2000);
+    </script>
+</body>
+</html>

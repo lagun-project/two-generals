@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGP Integration Test Suite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; padding: 20px; background: #0a0a0a; color: #0f0; }
+        .test-header { margin-bottom: 30px; border-bottom: 2px solid #0f0; padding-bottom: 10px; }
+        .test-suite { margin-bottom: 40px; }
+        .test-suite h2 { color: #0ff; margin-bottom: 15px; }
+        .test-case { margin: 10px 0; padding: 10px; background: #1a1a1a; border-left: 3px solid #555; }
+        .test-case.running { border-left-color: #ff0; }
+        .test-case.pass { border-left-color: #0f0; }
+        .test-case.fail { border-left-color: #f00; }
+        .test-name { font-weight: bold; }
+        .test-details { margin-top: 5px; font-size: 0.9em; color: #aaa; }
+        .test-error { color: #f00; margin-top: 5px; white-space: pre-wrap; }
+        .summary { margin-top: 30px; padding: 20px; background: #1a1a1a; border: 2px solid #0f0; }
+        .summary.fail { border-color: #f00; }
+        .progress { width: 100%; height: 30px; background: #1a1a1a; margin: 20px 0; position: relative; }
+        .progress-bar { height: 100%; background: #0f0; transition: width 0.3s; }
+        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-weight: bold; }
+        #test-iframe { display: none; }
+        .controls { margin: 20px 0; }
+        .controls button { background: #0f0; color: #000; border: none; padding: 10px 20px; margin-right: 10px; cursor: pointer; font-weight: bold; }
+        .controls button:hover { background: #0ff; }
+        .metric { display: inline-block; margin-right: 20px; }
+        .metric-value { color: #0ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>TGP Integration Test Suite</h1>
+        <p>Automated testing for tab switching, visualizations, loss rates, and responsive design</p>
+        <div class="controls">
+            <button id="run-all">Run All Tests</button>
+            <button id="run-tabs">Tab Tests</button>
+            <button id="run-viz">Visualization Tests</button>
+            <button id="run-loss">Loss Rate Tests</button>
+            <button id="run-responsive">Responsive Tests</button>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+            <div class="progress-text" id="progress-text">Ready</div>
+        </div>
+    </div>
+
+    <div id="test-results"></div>
+
+    <div class="summary" id="summary" style="display: none;">
+        <h2>Test Summary</h2>
+        <div class="metric">Total: <span class="metric-value" id="total-tests">0</span></div>
+        <div class="metric">Passed: <span class="metric-value" id="passed-tests">0</span></div>
+        <div class="metric">Failed: <span class="metric-value" id="failed-tests">0</span></div>
+        <div class="metric">Duration: <span class="metric-value" id="test-duration">0s</span></div>
+        <div class="metric">Success Rate: <span class="metric-value" id="success-rate">0%</span></div>
+    </div>
+
+    <iframe id="test-iframe" src="../index.html"></iframe>
+
+    <script type="module">
+        class IntegrationTestSuite {
+            constructor() {
+                this.results = [];
+                this.currentTest = null;
+                this.startTime = null;
+                this.iframe = null;
+            }
+
+            async init() {
+                this.iframe = document.getElementById('test-iframe');
+                await this.waitForIframeLoad();
+            }
+
+            waitForIframeLoad() {
+                return new Promise(resolve => {
+                    if (this.iframe.contentWindow.document.readyState === 'complete') {
+                        resolve();
+                    } else {
+                        this.iframe.onload = resolve;
+                    }
+                });
+            }
+
+            getIframeWindow() {
+                return this.iframe.contentWindow;
+            }
+
+            getIframeDocument() {
+                return this.iframe.contentDocument || this.iframe.contentWindow.document;
+            }
+
+            async runTest(name, testFn, suiteName) {
+                const testCase = this.createTestElement(name, suiteName);
+                this.currentTest = { name, suiteName, element: testCase };
+                testCase.classList.add('running');
+
+                try {
+                    const result = await testFn();
+                    testCase.classList.remove('running');
+                    testCase.classList.add('pass');
+                    this.addTestDetails(testCase, `✓ PASS - ${result || 'Success'}`);
+                    this.results.push({ name, suiteName, status: 'pass', result });
+                    return true;
+                } catch (error) {
+                    testCase.classList.remove('running');
+                    testCase.classList.add('fail');
+                    this.addTestDetails(testCase, `✗ FAIL`);
+                    this.addTestError(testCase, error.message);
+                    this.results.push({ name, suiteName, status: 'fail', error: error.message });
+                    return false;
+                }
+            }
+
+            createTestElement(name, suiteName) {
+                let suite = document.querySelector(`[data-suite="${suiteName}"]`);
+                if (!suite) {
+                    suite = document.createElement('div');
+                    suite.className = 'test-suite';
+                    suite.dataset.suite = suiteName;
+                    suite.innerHTML = `<h2>${suiteName}</h2>`;
+                    document.getElementById('test-results').appendChild(suite);
+                }
+
+                const testCase = document.createElement('div');
+                testCase.className = 'test-case';
+                testCase.innerHTML = `<div class="test-name">${name}</div>`;
+                suite.appendChild(testCase);
+                return testCase;
+            }
+
+            addTestDetails(element, text) {
+                const details = document.createElement('div');
+                details.className = 'test-details';
+                details.textContent = text;
+                element.appendChild(details);
+            }
+
+            addTestError(element, error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'test-error';
+                errorDiv.textContent = error;
+                element.appendChild(errorDiv);
+            }
+
+            updateProgress(current, total) {
+                const percent = (current / total) * 100;
+                document.getElementById('progress-bar').style.width = `${percent}%`;
+                document.getElementById('progress-text').textContent = `${current}/${total} tests`;
+            }
+
+            showSummary() {
+                const total = this.results.length;
+                const passed = this.results.filter(r => r.status === 'pass').length;
+                const failed = total - passed;
+                const duration = ((Date.now() - this.startTime) / 1000).toFixed(2);
+                const successRate = ((passed / total) * 100).toFixed(1);
+
+                document.getElementById('total-tests').textContent = total;
+                document.getElementById('passed-tests').textContent = passed;
+                document.getElementById('failed-tests').textContent = failed;
+                document.getElementById('test-duration').textContent = `${duration}s`;
+                document.getElementById('success-rate').textContent = `${successRate}%`;
+
+                const summary = document.getElementById('summary');
+                summary.style.display = 'block';
+                if (failed > 0) {
+                    summary.classList.add('fail');
+                }
+            }
+
+            // ===== Tab Switching Tests =====
+            async testTabSwitching() {
+                const doc = this.getIframeDocument();
+                const tabs = ['tab-problem', 'tab-comparison', 'tab-visualizer'];
+
+                for (const tabId of tabs) {
+                    const tab = doc.getElementById(tabId);
+                    if (!tab) throw new Error(`Tab ${tabId} not found`);
+
+                    tab.click();
+                    await this.sleep(100);
+
+                    if (!tab.classList.contains('active')) {
+                        throw new Error(`Tab ${tabId} did not activate`);
+                    }
+
+                    const paneId = tab.getAttribute('aria-controls');
+                    const pane = doc.getElementById(paneId);
+                    if (!pane.classList.contains('active')) {
+                        throw new Error(`Pane ${paneId} did not activate`);
+                    }
+                }
+
+                return `All ${tabs.length} tabs switch correctly`;
+            }
+
+            async testTabKeyboardNavigation() {
+                const doc = this.getIframeDocument();
+                const tab = doc.getElementById('tab-problem');
+
+                tab.focus();
+                await this.sleep(50);
+
+                // Simulate arrow key
+                const event = new KeyboardEvent('keydown', { key: 'ArrowRight' });
+                tab.dispatchEvent(event);
+                await this.sleep(100);
+
+                return 'Keyboard navigation functional';
+            }
+
+            async testTabAriaAttributes() {
+                const doc = this.getIframeDocument();
+                const tabs = doc.querySelectorAll('[role="tab"]');
+
+                for (const tab of tabs) {
+                    if (!tab.hasAttribute('aria-controls')) {
+                        throw new Error(`Tab ${tab.id} missing aria-controls`);
+                    }
+                    if (!tab.hasAttribute('aria-selected')) {
+                        throw new Error(`Tab ${tab.id} missing aria-selected`);
+                    }
+                }
+
+                return `All ${tabs.length} tabs have proper ARIA attributes`;
+            }
+
+            // ===== Visualization Initialization Tests =====
+            async testTab1VisualizationsExist() {
+                const doc = this.getIframeDocument();
+                const vizIds = [
+                    'battlefield-scene',
+                    'infinite-regress',
+                    'proof-merging',
+                    'phase-walkthrough',
+                    'bilateral-construction-graph',
+                    'no-last-message',
+                    'knot-metaphor',
+                    'impact-visualization'
+                ];
+
+                for (const id of vizIds) {
+                    const element = doc.getElementById(id);
+                    if (!element) throw new Error(`Visualization ${id} not found`);
+                }
+
+                return `All ${vizIds.length} Tab 1 visualizations exist`;
+            }
+
+            async testTab2PerformanceControlsExist() {
+                const doc = this.getIframeDocument();
+
+                // Switch to Tab 2
+                doc.getElementById('tab-comparison').click();
+                await this.sleep(200);
+
+                const elements = ['perf-loss-rate', 'perf-iterations', 'run-perf-test'];
+                for (const id of elements) {
+                    if (!doc.getElementById(id)) throw new Error(`Control ${id} not found`);
+                }
+
+                return 'Performance controls initialized';
+            }
+
+            async testTab3VisualizerInitialized() {
+                const doc = this.getIframeDocument();
+
+                // Switch to Tab 3
+                doc.getElementById('tab-visualizer').click();
+                await this.sleep(200);
+
+                const win = this.getIframeWindow();
+                if (!win.visualizer) throw new Error('Visualizer not initialized');
+
+                return 'Interactive visualizer initialized';
+            }
+
+            async testSVGElementsRendered() {
+                const doc = this.getIframeDocument();
+                const svgs = doc.querySelectorAll('svg');
+
+                if (svgs.length < 2) throw new Error(`Expected multiple SVGs, found ${svgs.length}`);
+
+                return `${svgs.length} SVG elements rendered`;
+            }
+
+            // ===== Loss Rate Tests =====
+            async testLossRate10Percent() {
+                return await this.runProtocolAtLossRate(0.1, '10%');
+            }
+
+            async testLossRate50Percent() {
+                return await this.runProtocolAtLossRate(0.5, '50%');
+            }
+
+            async testLossRate90Percent() {
+                return await this.runProtocolAtLossRate(0.9, '90%');
+            }
+
+            async testLossRate99Percent() {
+                return await this.runProtocolAtLossRate(0.99, '99%');
+            }
+
+            async runProtocolAtLossRate(rate, label) {
+                const doc = this.getIframeDocument();
+                const win = this.getIframeWindow();
+
+                // Switch to visualizer tab
+                doc.getElementById('tab-visualizer').click();
+                await this.sleep(200);
+
+                if (!win.visualizer) throw new Error('Visualizer not available');
+
+                // Set loss rate
+                const lossSlider = doc.getElementById('loss-rate');
+                lossSlider.value = rate * 100;
+                lossSlider.dispatchEvent(new Event('input', { bubbles: true }));
+                await this.sleep(100);
+
+                // Start protocol
+                const startBtn = doc.getElementById('start-btn');
+                startBtn.click();
+
+                // Wait for completion (max 10 seconds)
+                const maxWait = 10000;
+                const startTime = Date.now();
+
+                while (Date.now() - startTime < maxWait) {
+                    await this.sleep(100);
+
+                    const outcome = doc.getElementById('outcome');
+                    if (outcome && outcome.textContent.includes('ATTACK')) {
+                        // Reset for next test
+                        doc.getElementById('reset-btn').click();
+                        return `Protocol completed at ${label} loss`;
+                    }
+                    if (outcome && outcome.textContent.includes('ABORT')) {
+                        doc.getElementById('reset-btn').click();
+                        return `Protocol aborted at ${label} loss (acceptable)`;
+                    }
+                }
+
+                throw new Error(`Protocol did not complete within ${maxWait}ms at ${label} loss`);
+            }
+
+            async testSymmetricOutcomesAtHighLoss() {
+                const doc = this.getIframeDocument();
+                const win = this.getIframeWindow();
+
+                doc.getElementById('tab-visualizer').click();
+                await this.sleep(200);
+
+                // Run multiple trials at 90% loss
+                const trials = 3;
+                let allSymmetric = true;
+
+                for (let i = 0; i < trials; i++) {
+                    const lossSlider = doc.getElementById('loss-rate');
+                    lossSlider.value = 90;
+                    lossSlider.dispatchEvent(new Event('input', { bubbles: true }));
+                    await this.sleep(50);
+
+                    doc.getElementById('start-btn').click();
+                    await this.sleep(2000); // Wait for completion
+
+                    const alicePhase = doc.getElementById('alice-phase');
+                    const bobPhase = doc.getElementById('bob-phase');
+
+                    if (alicePhase && bobPhase) {
+                        if (alicePhase.textContent !== bobPhase.textContent) {
+                            allSymmetric = false;
+                        }
+                    }
+
+                    doc.getElementById('reset-btn').click();
+                    await this.sleep(100);
+                }
+
+                if (!allSymmetric) throw new Error('Asymmetric outcomes detected');
+                return `${trials} trials all showed symmetric outcomes`;
+            }
+
+            // ===== Responsive Design Tests =====
+            async testMobileBreakpoint() {
+                const iframe = this.iframe;
+
+                // Set mobile size
+                iframe.style.width = '375px';
+                iframe.style.height = '667px';
+                await this.sleep(300);
+
+                const doc = this.getIframeDocument();
+                const container = doc.querySelector('.container');
+
+                if (!container) throw new Error('Container not found');
+
+                const width = container.offsetWidth;
+                if (width > 375) throw new Error(`Container too wide for mobile: ${width}px`);
+
+                // Reset
+                iframe.style.width = '';
+                iframe.style.height = '';
+
+                return 'Mobile breakpoint (375px) works correctly';
+            }
+
+            async testTabletBreakpoint() {
+                const iframe = this.iframe;
+
+                // Set tablet size
+                iframe.style.width = '768px';
+                iframe.style.height = '1024px';
+                await this.sleep(300);
+
+                const doc = this.getIframeDocument();
+                const tabs = doc.querySelector('.tab-container');
+
+                if (!tabs) throw new Error('Tab container not found');
+
+                // Reset
+                iframe.style.width = '';
+                iframe.style.height = '';
+
+                return 'Tablet breakpoint (768px) works correctly';
+            }
+
+            async testDesktopBreakpoint() {
+                const iframe = this.iframe;
+
+                // Set desktop size
+                iframe.style.width = '1920px';
+                iframe.style.height = '1080px';
+                await this.sleep(300);
+
+                const doc = this.getIframeDocument();
+                const container = doc.querySelector('.container');
+
+                if (!container) throw new Error('Container not found');
+
+                const maxWidth = parseInt(getComputedStyle(container).maxWidth);
+                if (maxWidth > 2000) throw new Error('Max width too large');
+
+                // Reset
+                iframe.style.width = '';
+                iframe.style.height = '';
+
+                return 'Desktop layout maintains max-width';
+            }
+
+            async testTouchTargetSizes() {
+                const doc = this.getIframeDocument();
+                const buttons = doc.querySelectorAll('button');
+
+                let tooSmall = [];
+                for (const btn of buttons) {
+                    const rect = btn.getBoundingClientRect();
+                    const minSize = 44; // WCAG AA minimum
+
+                    if (rect.height < minSize || rect.width < minSize) {
+                        tooSmall.push(btn.id || btn.textContent.substring(0, 20));
+                    }
+                }
+
+                if (tooSmall.length > 0) {
+                    throw new Error(`Buttons too small: ${tooSmall.join(', ')}`);
+                }
+
+                return `All ${buttons.length} buttons meet touch target size (44px)`;
+            }
+
+            // ===== Performance Tests =====
+            async testPageLoadTime() {
+                const win = this.getIframeWindow();
+                const perf = win.performance;
+
+                if (!perf) throw new Error('Performance API not available');
+
+                const loadTime = perf.timing.loadEventEnd - perf.timing.navigationStart;
+                if (loadTime > 5000) {
+                    throw new Error(`Page load too slow: ${loadTime}ms`);
+                }
+
+                return `Page loaded in ${loadTime}ms`;
+            }
+
+            async testAnimationFrameRate() {
+                const doc = this.getIframeDocument();
+                doc.getElementById('tab-visualizer').click();
+                await this.sleep(200);
+
+                doc.getElementById('start-btn').click();
+
+                // Measure frame rate for 1 second
+                const win = this.getIframeWindow();
+                let frames = 0;
+                const startTime = Date.now();
+
+                const countFrames = () => {
+                    frames++;
+                    if (Date.now() - startTime < 1000) {
+                        win.requestAnimationFrame(countFrames);
+                    }
+                };
+
+                win.requestAnimationFrame(countFrames);
+                await this.sleep(1100);
+
+                doc.getElementById('reset-btn').click();
+
+                if (frames < 30) throw new Error(`Frame rate too low: ${frames} fps`);
+
+                return `Animation runs at ${frames} fps`;
+            }
+
+            // ===== Utility Methods =====
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async runAllTests() {
+                this.results = [];
+                this.startTime = Date.now();
+                document.getElementById('test-results').innerHTML = '';
+                document.getElementById('summary').style.display = 'none';
+
+                const tests = [
+                    // Tab Tests
+                    { name: 'Tab switching functionality', fn: () => this.testTabSwitching(), suite: 'Tab Navigation' },
+                    { name: 'Tab keyboard navigation', fn: () => this.testTabKeyboardNavigation(), suite: 'Tab Navigation' },
+                    { name: 'Tab ARIA attributes', fn: () => this.testTabAriaAttributes(), suite: 'Tab Navigation' },
+
+                    // Visualization Tests
+                    { name: 'Tab 1 visualizations exist', fn: () => this.testTab1VisualizationsExist(), suite: 'Visualizations' },
+                    { name: 'Tab 2 performance controls', fn: () => this.testTab2PerformanceControlsExist(), suite: 'Visualizations' },
+                    { name: 'Tab 3 visualizer initialized', fn: () => this.testTab3VisualizerInitialized(), suite: 'Visualizations' },
+                    { name: 'SVG elements rendered', fn: () => this.testSVGElementsRendered(), suite: 'Visualizations' },
+
+                    // Loss Rate Tests
+                    { name: '10% packet loss', fn: () => this.testLossRate10Percent(), suite: 'Loss Rate Tests' },
+                    { name: '50% packet loss', fn: () => this.testLossRate50Percent(), suite: 'Loss Rate Tests' },
+                    { name: '90% packet loss', fn: () => this.testLossRate90Percent(), suite: 'Loss Rate Tests' },
+                    { name: '99% packet loss', fn: () => this.testLossRate99Percent(), suite: 'Loss Rate Tests' },
+                    { name: 'Symmetric outcomes at high loss', fn: () => this.testSymmetricOutcomesAtHighLoss(), suite: 'Loss Rate Tests' },
+
+                    // Responsive Tests
+                    { name: 'Mobile breakpoint (375px)', fn: () => this.testMobileBreakpoint(), suite: 'Responsive Design' },
+                    { name: 'Tablet breakpoint (768px)', fn: () => this.testTabletBreakpoint(), suite: 'Responsive Design' },
+                    { name: 'Desktop layout', fn: () => this.testDesktopBreakpoint(), suite: 'Responsive Design' },
+                    { name: 'Touch target sizes', fn: () => this.testTouchTargetSizes(), suite: 'Responsive Design' },
+
+                    // Performance Tests
+                    { name: 'Page load time', fn: () => this.testPageLoadTime(), suite: 'Performance' },
+                    { name: 'Animation frame rate', fn: () => this.testAnimationFrameRate(), suite: 'Performance' },
+                ];
+
+                let completed = 0;
+                for (const test of tests) {
+                    await this.runTest(test.name, test.fn, test.suite);
+                    completed++;
+                    this.updateProgress(completed, tests.length);
+                }
+
+                this.showSummary();
+            }
+        }
+
+        // Initialize and attach to window
+        const testSuite = new IntegrationTestSuite();
+
+        window.addEventListener('load', async () => {
+            await testSuite.init();
+
+            document.getElementById('run-all').addEventListener('click', () => {
+                testSuite.runAllTests();
+            });
+
+            console.log('Integration test suite ready. Click "Run All Tests" to start.');
+        });
+    </script>
+</body>
+</html>

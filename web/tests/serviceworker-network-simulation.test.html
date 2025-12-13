@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceWorker Network Simulation Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #58a6ff; margin-bottom: 30px; }
+        h2 { color: #8b949e; margin-top: 30px; }
+        .test-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 15px;
+            background: #0d1117;
+            border-left: 4px solid #3fb950;
+            border-radius: 4px;
+        }
+        .test-result.fail { border-left-color: #f85149; }
+        .test-result.pending { border-left-color: #d29922; }
+        .test-result h3 {
+            margin: 0 0 10px 0;
+            color: #f0f6fc;
+            font-size: 16px;
+        }
+        .test-details {
+            font-family: monospace;
+            font-size: 13px;
+            color: #8b949e;
+            margin: 10px 0 0 0;
+            padding: 10px;
+            background: #010409;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .metric {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #21262d;
+        }
+        .metric-label {
+            color: #8b949e;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-value {
+            color: #f0f6fc;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .metric-value.success { color: #3fb950; }
+        .metric-value.warning { color: #d29922; }
+        .metric-value.error { color: #f85149; }
+        button {
+            background: #238636;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2ea043; }
+        button:disabled {
+            background: #21262d;
+            color: #6e7681;
+            cursor: not-allowed;
+        }
+        .progress {
+            margin: 15px 0;
+            color: #58a6ff;
+            font-style: italic;
+        }
+        .summary {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 6px;
+            border: 2px solid #238636;
+            margin-top: 30px;
+        }
+        .summary h2 { margin-top: 0; color: #3fb950; }
+    </style>
+</head>
+<body>
+    <h1>🔬 ServiceWorker Network Simulation Test Suite</h1>
+    <p>Comprehensive validation of the ServiceWorker-based network simulation for realistic protocol testing</p>
+
+    <div class="test-section">
+        <button id="run-all-tests">Run All Tests</button>
+        <button id="run-basic-tests">Run Basic Tests Only</button>
+        <button id="run-protocol-tests">Run Protocol Comparison</button>
+    </div>
+
+    <div id="test-results"></div>
+    <div id="test-summary"></div>
+
+    <script type="module">
+        import { NetworkSimulationManager, ProtocolComparisonRunner } from '/network-simulation.js';
+
+        const resultsDiv = document.getElementById('test-results');
+        const summaryDiv = document.getElementById('test-summary');
+        let testCount = 0;
+        let passCount = 0;
+        let failCount = 0;
+
+        function createTestResult(name, status = 'pending') {
+            const div = document.createElement('div');
+            div.className = `test-result ${status}`;
+            div.id = `test-${testCount}`;
+            div.innerHTML = `
+                <h3>${status === 'pending' ? '⏳' : status === 'pass' ? '✓' : '✗'} ${name}</h3>
+                <div class="test-details"></div>
+            `;
+            resultsDiv.appendChild(div);
+            testCount++;
+            return div;
+        }
+
+        function updateTestResult(div, passed, details = null) {
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            const h3 = div.querySelector('h3');
+            h3.textContent = h3.textContent.replace(/^[⏳✓✗]\s*/, passed ? '✓ ' : '✗ ');
+
+            if (details) {
+                const detailsDiv = div.querySelector('.test-details');
+                if (typeof details === 'object') {
+                    detailsDiv.textContent = JSON.stringify(details, null, 2);
+                } else {
+                    detailsDiv.textContent = details;
+                }
+            }
+
+            if (passed) passCount++;
+            else failCount++;
+        }
+
+        function renderSummary() {
+            const total = passCount + failCount;
+            const percentage = total > 0 ? ((passCount / total) * 100).toFixed(1) : 0;
+            const allPassed = total > 0 && failCount === 0;
+
+            summaryDiv.innerHTML = `
+                <div class="summary">
+                    <h2>Test Summary</h2>
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-label">Total Tests</div>
+                            <div class="metric-value">${total}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Passed</div>
+                            <div class="metric-value success">${passCount}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Failed</div>
+                            <div class="metric-value ${failCount > 0 ? 'error' : ''}">${failCount}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Pass Rate</div>
+                            <div class="metric-value ${allPassed ? 'success' : 'warning'}">${percentage}%</div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 18px; font-weight: bold; color: ${allPassed ? '#3fb950' : '#d29922'}">
+                        ${allPassed ? '✓ ALL TESTS PASSED' : `⚠ ${failCount} test(s) failed`}
+                    </p>
+                </div>
+            `;
+        }
+
+        // Test Suite
+        async function runBasicTests() {
+            // Test 1: ServiceWorker Support
+            let testDiv = createTestResult('1. ServiceWorker API Support');
+            const hasServiceWorker = 'serviceWorker' in navigator;
+            updateTestResult(testDiv, hasServiceWorker,
+                hasServiceWorker ? 'navigator.serviceWorker is available' : 'ServiceWorker not supported in this browser'
+            );
+
+            if (!hasServiceWorker) {
+                throw new Error('ServiceWorker not supported - cannot continue tests');
+            }
+
+            // Test 2: NetworkSimulationManager Instantiation
+            testDiv = createTestResult('2. NetworkSimulationManager Instantiation');
+            try {
+                const manager = new NetworkSimulationManager();
+                updateTestResult(testDiv, true, 'Successfully created NetworkSimulationManager instance');
+                return manager;
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function runRegistrationTests(manager) {
+            // Test 3: ServiceWorker Registration
+            const testDiv = createTestResult('3. ServiceWorker Registration');
+            try {
+                await manager.initialize();
+                const isRegistered = manager.isRegistered;
+                updateTestResult(testDiv, isRegistered, `Registration status: ${isRegistered ? 'Active' : 'Failed'}`);
+
+                if (!isRegistered) {
+                    throw new Error('ServiceWorker registration failed');
+                }
+
+                // Small delay to ensure activation
+                await new Promise(resolve => setTimeout(resolve, 500));
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+                throw error;
+            }
+        }
+
+        async function runMessagingTests(manager) {
+            // Test 4: Message Passing - Reset Metrics
+            let testDiv = createTestResult('4. ServiceWorker Messaging - Reset Metrics');
+            try {
+                await manager.resetMetrics();
+                updateTestResult(testDiv, true, 'Successfully communicated with ServiceWorker via MessageChannel');
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+            }
+
+            // Test 5: Message Passing - Get Metrics
+            testDiv = createTestResult('5. ServiceWorker Messaging - Get Metrics');
+            try {
+                const metrics = await manager.getMetrics();
+                updateTestResult(testDiv, metrics !== null && typeof metrics === 'object',
+                    `Received metrics: ${JSON.stringify(metrics, null, 2)}`
+                );
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+            }
+        }
+
+        async function runSimulationTests(manager) {
+            // Test 6: Start Simulation
+            let testDiv = createTestResult('6. Start Network Simulation (TGP, 50% loss)');
+            try {
+                await manager.startSimulation('tgp', 0.5);
+                const hasSimulation = manager.currentSimulation !== null;
+                updateTestResult(testDiv, hasSimulation,
+                    `Current simulation: ${JSON.stringify(manager.currentSimulation)}`
+                );
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+                return;
+            }
+
+            // Test 7: Simulated Fetch
+            testDiv = createTestResult('7. Simulated Fetch Request');
+            try {
+                // Note: The ServiceWorker only intercepts /api/sim/* paths
+                const result = await manager.simulateFetch('/api/sim/test-resource?size=small&test=true');
+                updateTestResult(testDiv, result.success !== undefined,
+                    `Fetch result: ${JSON.stringify(result, null, 2)}`
+                );
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+            }
+
+            // Test 8: Metrics Collection
+            testDiv = createTestResult('8. Metrics Collection After Simulation');
+            try {
+                const metrics = await manager.getMetrics();
+                const hasMetrics = metrics && metrics.totalRequests >= 0;
+                updateTestResult(testDiv, hasMetrics,
+                    `Collected metrics:\n${JSON.stringify(metrics, null, 2)}`
+                );
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+            }
+
+            // Test 9: Stop Simulation
+            testDiv = createTestResult('9. Stop Network Simulation');
+            try {
+                await manager.stopSimulation();
+                const stopped = manager.currentSimulation === null;
+                updateTestResult(testDiv, stopped, 'Simulation stopped successfully');
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+            }
+        }
+
+        async function runProtocolComparisonTest() {
+            const testDiv = createTestResult('10. Protocol Comparison Test (TCP, QUIC, TGP at 90% loss)');
+
+            try {
+                const runner = new ProtocolComparisonRunner();
+
+                // Run a quick comparison at 90% loss
+                const results = await runner.runComparison(
+                    0.9,  // 90% packet loss
+                    '/api/sim/test-resource',
+                    { attempts: 5, delayBetweenAttempts: 100 }
+                );
+
+                const hasTGP = results.find(r => r.protocol === 'TGP');
+                const hasTCP = results.find(r => r.protocol === 'TCP');
+                const hasQUIC = results.find(r => r.protocol === 'QUIC');
+
+                const allProtocolsTested = hasTGP && hasTCP && hasQUIC;
+
+                updateTestResult(testDiv, allProtocolsTested,
+                    `Protocol comparison results:\n${JSON.stringify(results, null, 2)}`
+                );
+
+                // Display results as metrics
+                const metricsDiv = document.createElement('div');
+                metricsDiv.className = 'metrics';
+                metricsDiv.innerHTML = results.map(r => `
+                    <div class="metric">
+                        <div class="metric-label">${r.protocol}</div>
+                        <div class="metric-value ${r.successRate > 80 ? 'success' : r.successRate > 50 ? 'warning' : 'error'}">
+                            ${r.successRate.toFixed(1)}% success
+                        </div>
+                        <div class="test-details" style="margin-top: 10px;">
+                            Attempts: ${r.attempts}<br>
+                            Successes: ${r.successes}<br>
+                            Avg Latency: ${r.avgLatency.toFixed(0)}ms
+                        </div>
+                    </div>
+                `).join('');
+                testDiv.appendChild(metricsDiv);
+
+            } catch (error) {
+                updateTestResult(testDiv, false, `Error: ${error.message}`);
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            testCount = 0;
+            passCount = 0;
+            failCount = 0;
+            resultsDiv.innerHTML = '';
+            summaryDiv.innerHTML = '<div class="progress">Running tests...</div>';
+
+            try {
+                const manager = await runBasicTests();
+                await runRegistrationTests(manager);
+                await runMessagingTests(manager);
+                await runSimulationTests(manager);
+                await runProtocolComparisonTest();
+            } catch (error) {
+                console.error('Test suite failed:', error);
+            }
+
+            renderSummary();
+        }
+
+        // Button handlers
+        document.getElementById('run-all-tests').addEventListener('click', runAllTests);
+
+        document.getElementById('run-basic-tests').addEventListener('click', async () => {
+            testCount = 0;
+            passCount = 0;
+            failCount = 0;
+            resultsDiv.innerHTML = '';
+
+            try {
+                const manager = await runBasicTests();
+                await runRegistrationTests(manager);
+                await runMessagingTests(manager);
+            } catch (error) {
+                console.error('Basic tests failed:', error);
+            }
+
+            renderSummary();
+        });
+
+        document.getElementById('run-protocol-tests').addEventListener('click', async () => {
+            testCount = 0;
+            passCount = 0;
+            failCount = 0;
+            resultsDiv.innerHTML = '';
+
+            await runProtocolComparisonTest();
+            renderSummary();
+        });
+
+        // Auto-run on load
+        console.log('ServiceWorker Network Simulation Test Suite loaded. Click "Run All Tests" to begin.');
+    </script>
+</body>
+</html>
