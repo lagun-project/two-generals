@@ -91,3 +91,4 @@ dmypy.json
 python/pipepiper/
 web/.deploy/
 web/test-results/
+*.zip
