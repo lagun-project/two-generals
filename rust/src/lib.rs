@@ -49,6 +49,7 @@ extern crate alloc;
 pub mod bft;
 pub mod crypto;
 pub mod error;
+pub mod lightweight;
 pub mod protocol;
 pub mod types;
 

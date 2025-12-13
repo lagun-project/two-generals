@@ -17,6 +17,10 @@ crate-type = ["cdylib", "rlib"]
 name = "tgp-node"
 path = "src/bin/tgp-node.rs"
 
+[[bin]]
+name = "lightweight-test"
+path = "src/bin/lightweight-test.rs"
+
 [features]
 default = ["std"]
 std = []
