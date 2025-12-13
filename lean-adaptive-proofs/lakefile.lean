@@ -14,9 +14,19 @@ package «adaptive-flooding-proofs» {
 -- Depend on the main two-generals-proof package
 require «two-generals-proof» from "../lean4"
 
--- Adaptive flooding proofs library
+-- Adaptive flooding proofs libraries
 @[default_target]
 lean_lib «AdaptiveBilateral» {
   -- Bilateral preservation theorem
   -- Proves adaptive rate modulation preserves bilateral construction
+}
+
+lean_lib «Convergence» {
+  -- Convergence theorem
+  -- Proves protocol converges under fair channel
+}
+
+lean_lib «RateSafety» {
+  -- Rate modulation safety
+  -- Proves rate stays within bounds
 }
