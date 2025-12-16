@@ -281,9 +281,9 @@ This resolves a 47-year impossibility result and extends naturally to:
 
 ## License
 
-**AGPLv3** — Everything is free, forever.
+**AGPLv3**
 
-No proprietary versions, no enterprise exclusives. This protocol solves a fundamental impossibility in distributed systems — it belongs to everyone.
+This protocol solves a fundamental impossibility in distributed systems — it belongs to everyone.
 
 ---
 
