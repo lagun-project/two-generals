@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = [
+    "rust",
+    "rust-adaptive-flooding",
+]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Riff Labs <wings@riff.cc>"]
+edition = "2021"
+license = "AGPL-3.0"
+repository = "https://github.com/riffcc/two-generals"
